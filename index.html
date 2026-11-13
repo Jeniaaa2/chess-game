@@ -2,124 +2,352 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Шахматы от Jenia</title>
-<script src="https://cloudflare.com"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Шахматы от Jenia — VIP Edition</title>
 <style>
-  body { background: #121212; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 15px; touch-action: manipulation; }
-  h2 { margin: 5px 0 15px; color: #00e676; font-size: 22px; text-align: center; }
-  #board { display: grid; grid-template-columns: repeat(8, 11.5vw); grid-template-rows: repeat(8, 11.5vw); max-width: 440px; max-height: 440px; border: 3px solid #444; box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
-  .sq { display: flex; justify-content: center; align-items: center; font-size: 9vw; cursor: pointer; user-select: none; }
-  @media (min-width: 460px) { .sq { font-size: 42px; } }
-  .light { background: #eeeed2; color: #000; }
-  .dark { background: #769656; color: #000; }
-  .selected { background: #f6f669 !important; }
-  .controls { margin-top: 20px; display: flex; gap: 15px; }
-  button { padding: 12px 24px; font-size: 16px; border: none; border-radius: 8px; background: #00e676; color: #000; font-weight: bold; cursor: pointer; }
-  #status { margin-top: 15px; font-size: 16px; color: #ccc; font-weight: bold; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: radial-gradient(circle at top, #1b2838 0%, #090d16 100%);
+    color: #fff;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 8px;
+    touch-action: manipulation;
+    user-select: none;
+  }
+  h2 {
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #ffd700, #00e676);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-align: center;
+  }
+  #board-wrap {
+    padding: 6px;
+    background: linear-gradient(145deg, #d4af37, #7a5c12);
+    border-radius: 12px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.25);
+  }
+  #board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    width: 93vw;
+    height: 93vw;
+    max-width: 460px;
+    max-height: 460px;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .sq {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 9.5vw;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    transition: background 0.15s ease;
+  }
+  @media (min-width: 480px) { .sq { font-size: 44px; } }
+  
+  /* Оригинальные дизайнерские клетки: слоновая кость и глубокий малахит */
+  .light {
+    background: linear-gradient(135deg, #f3e5ab 0%, #e0c982 100%);
+  }
+  .dark {
+    background: linear-gradient(135deg, #165b49 0%, #0d3b2e 100%);
+  }
+  .selected {
+    background: radial-gradient(circle, #fff176 20%, #fbc02d 100%) !important;
+    box-shadow: inset 0 0 12px rgba(0,0,0,0.5);
+  }
+  .last-move {
+    box-shadow: inset 0 0 0 3px rgba(0, 230, 118, 0.75);
+  }
+  .hint::after {
+    content: "";
+    width: 28%;
+    height: 28%;
+    background: rgba(255, 215, 0, 0.75);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(0,0,0,0.5);
+  }
+
+  /* Оригинальные объёмные фигуры с неоновой обводкой */
+  .piece-w {
+    color: #ffffff;
+    text-shadow: 0 2px 3px #000, 0 0 10px rgba(0, 230, 118, 0.9), 0 0 2px #000;
+    transform: translateY(-1px);
+  }
+  .piece-b {
+    color: #111622;
+    text-shadow: 0 1px 0 #ffd700, 0 -1px 0 #ffd700, 1px 0 0 #ffd700, -1px 0 0 #ffd700, 0 3px 6px rgba(0,0,0,0.85);
+    transform: translateY(-1px);
+  }
+
+  .coord-rank {
+    position: absolute;
+    top: 2px;
+    left: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    opacity: 0.75;
+  }
+  .coord-file {
+    position: absolute;
+    bottom: 1px;
+    right: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    opacity: 0.75;
+  }
+  .light .coord-rank, .light .coord-file { color: #0d3b2e; }
+  .dark .coord-rank, .dark .coord-file { color: #f3e5ab; }
+
+  #status {
+    margin-top: 14px;
+    font-size: 17px;
+    color: #f3e5ab;
+    font-weight: 700;
+    min-height: 24px;
+    text-align: center;
+  }
+  .controls {
+    margin-top: 12px;
+    display: flex;
+    gap: 12px;
+  }
+  button {
+    padding: 12px 26px;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #ffd700, #ffb300);
+    color: #090d16;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 179, 0, 0.4);
+  }
+  button:active { transform: scale(0.97); }
 </style>
 </head>
 <body>
-  <h2>Шахматы от Jenia</h2>
-  <div id="board"></div>
+  <h2>♔ Шахматы от Jenia ♚</h2>
+  <div id="board-wrap">
+    <div id="board"></div>
+  </div>
   <div id="status">Ваш ход (Белые)</div>
   <div class="controls">
-    <button onclick="resetGame()">Новая игра</button>
+    <button onclick="resetGame()">Новая партия</button>
   </div>
 
 <script>
-const game = new Chess();
-const pieces = {'p':'♟','n':'♞','b':'♝','r':'♜','q':'♛','k':'♚','P':'♙','N':'♘','B':'♗','R':'♖','Q':'♕','K':'♔'};
-const weights = {p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000};
+const PIECES = {
+  'P':'♙','N':'♘','B':'♗','R':'♖','Q':'♕','K':'♔',
+  'p':'♟','n':'♞','b':'♝','r':'♜','q':'♛','k':'♚'
+};
+const VALS = {'p':10,'n':32,'b':33,'r':50,'q':90,'k':900};
+let board = [];
 let selected = null;
+let validHints = [];
+let lastMove = null;
+let turn = 'w';
 
-function evaluate(b) {
-  let total = 0;
-  const board = b.board();
-  for (let r = 0; r < 8; r++) {
-    for (let c = 0; c < 8; c++) {
-      const p = board[r][c];
-      if (p) total += (p.color === 'w' ? 1 : -1) * weights[p.type];
-    }
-  }
-  return total;
-}
-
-function getBestMove() {
-  const moves = game.moves();
-  if (moves.length === 0) return null;
-  let bestMove = moves[0];
-  let bestVal = 99999;
-  for (let m of moves) {
-    game.move(m);
-    let val = evaluate(game);
-    if (game.in_checkmate()) val = -99999;
-    game.undo();
-    if (val < bestVal || (val === bestVal && Math.random() > 0.5)) {
-      bestVal = val;
-      bestMove = m;
-    }
-  }
-  return bestMove;
-}
-
-function draw() {
-  const b = document.getElementById('board');
-  b.innerHTML = '';
-  const grid = game.board();
-  const files = ['a','b','c','d','e','f','g','h'];
-  for (let r = 0; r < 8; r++) {
-    for (let f = 0; f < 8; f++) {
-      const sq = files[f] + (8 - r);
-      const div = document.createElement('div');
-      div.className = 'sq ' + ((r + f) % 2 === 0 ? 'light' : 'dark');
-      if (selected === sq) div.classList.add('selected');
-      const p = grid[r][f];
-      div.textContent = p ? pieces[p.color === 'w' ? p.type.toUpperCase() : p.type] : '';
-      div.onclick = () => onClick(sq, p);
-      b.appendChild(div);
-    }
-  }
-}
-
-function onClick(sq, p) {
-  if (game.game_over()) return;
-  if (!selected) {
-    if (p && p.color === 'w') { selected = sq; draw(); }
-  } else {
-    if (selected === sq) { selected = null; draw(); return; }
-    const move = game.move({ from: selected, to: sq, promotion: 'q' });
-    selected = null;
-    if (move) {
-      draw();
-      if (game.game_over()) { updateStatus(); return; }
-      document.getElementById('status').textContent = 'Думаю...';
-      setTimeout(() => {
-        const ai = getBestMove();
-        if (ai) game.move(ai);
-        draw();
-        updateStatus();
-      }, 250);
-    } else {
-      draw();
-    }
-  }
-}
-
-function updateStatus() {
-  if (game.in_checkmate()) document.getElementById('status').textContent = 'Мат! Игра окончена.';
-  else if (game.in_draw()) document.getElementById('status').textContent = 'Ничья!';
-  else document.getElementById('status').textContent = game.in_check() ? 'Шах! Ваш ход' : 'Ваш ход (Белые)';
-}
-
-function resetGame() {
-  game.reset();
+function initBoard() {
+  board = [
+    ['r','n','b','q','k','b','n','r'],
+    ['p','p','p','p','p','p','p','p'],
+    ['','','','','','','',''],
+    ['','','','','','','',''],
+    ['','','','','','','',''],
+    ['','','','','','','',''],
+    ['P','P','P','P','P','P','P','P'],
+    ['R','N','B','Q','K','B','N','R']
+  ];
   selected = null;
+  validHints = [];
+  lastMove = null;
+  turn = 'w';
   document.getElementById('status').textContent = 'Ваш ход (Белые)';
   draw();
 }
 
-resetGame();
+function isWhite(p) { return p && p === p.toUpperCase(); }
+function isBlack(p) { return p && p === p.toLowerCase(); }
+
+function getMoves(r, c, b) {
+  const p = b[r][c];
+  if (!p) return [];
+  const moves = [];
+  const w = isWhite(p);
+  const type = p.toLowerCase();
+  const add = (nr, nc) => {
+    if (nr < 0 || nr > 7 || nc < 0 || nc > 7) return false;
+    const target = b[nr][nc];
+    if (!target) { moves.push([nr, nc]); return true; }
+    if (w !== isWhite(target)) moves.push([nr, nc]);
+    return false;
+  };
+
+  if (type === 'p') {
+    const dir = w ? -1 : 1;
+    const start = w ? 6 : 1;
+    if (r + dir >= 0 && r + dir <= 7 && !b[r + dir][c]) {
+      moves.push([r + dir, c]);
+      if (r === start && !b[r + 2 * dir][c]) moves.push([r + 2 * dir, c]);
+    }
+    for (let dc of [-1, 1]) {
+      const nr = r + dir, nc = c + dc;
+      if (nr >= 0 && nr <= 7 && nc >= 0 && nc <= 7 && b[nr][nc] && w !== isWhite(b[nr][nc])) {
+        moves.push([nr, nc]);
+      }
+    }
+  } else if (type === 'n') {
+    for (let [dr, dc] of [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]) add(r + dr, c + dc);
+  } else if (type === 'k') {
+    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) if (dr || dc) add(r + dr, c + dc);
+  } else {
+    const dirs = [];
+    if (type === 'r' || type === 'q') dirs.push([-1,0],[1,0],[0,-1],[0,1]);
+    if (type === 'b' || type === 'q') dirs.push([-1,-1],[-1,1],[1,-1],[1,1]);
+    for (let [dr, dc] of dirs) {
+      let nr = r + dr, nc = c + dc;
+      while (add(nr, nc)) { nr += dr; nc += dc; }
+    }
+  }
+  return moves;
+}
+
+function draw() {
+  const el = document.getElementById('board');
+  el.innerHTML = '';
+  const files = ['a','b','c','d','e','f','g','h'];
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const sq = document.createElement('div');
+      sq.className = 'sq ' + ((r + c) % 2 === 0 ? 'light' : 'dark');
+      
+      if (selected && selected[0] === r && selected[1] === c) sq.classList.add('selected');
+      if (lastMove && ((lastMove[0] === r && lastMove[1] === c) || (lastMove[2] === r && lastMove[3] === c))) {
+        sq.classList.add('last-move');
+      }
+      if (validHints.some(h => h[0] === r && h[1] === c)) {
+        sq.classList.add('hint');
+      }
+
+      if (c === 0) {
+        const rk = document.createElement('span');
+        rk.className = 'coord-rank';
+        rk.textContent = 8 - r;
+        sq.appendChild(rk);
+      }
+      if (r === 7) {
+        const fl = document.createElement('span');
+        fl.className = 'coord-file';
+        fl.textContent = files[c];
+        sq.appendChild(fl);
+      }
+
+      const p = board[r][c];
+      if (p) {
+        const span = document.createElement('span');
+        span.className = isWhite(p) ? 'piece-w' : 'piece-b';
+        span.textContent = PIECES[p];
+        sq.appendChild(span);
+      }
+
+      sq.onclick = () => handleClick(r, c);
+      el.appendChild(sq);
+    }
+  }
+}
+
+function handleClick(r, c) {
+  if (turn !== 'w') return;
+  const p = board[r][c];
+  if (!selected) {
+    if (isWhite(p)) {
+      selected = [r, c];
+      validHints = getMoves(r, c, board);
+      draw();
+    }
+  } else {
+    const [sr, sc] = selected;
+    if (sr === r && sc === c) {
+      selected = null;
+      validHints = [];
+      draw();
+      return;
+    }
+    const legal = validHints.some(m => m[0] === r && m[1] === c);
+    if (legal) {
+      makeMove(sr, sc, r, c);
+      lastMove = [sr, sc, r, c];
+      selected = null;
+      validHints = [];
+      turn = 'b';
+      draw();
+      document.getElementById('status').textContent = 'Соперник думает...';
+      setTimeout(aiMove, 300);
+    } else if (isWhite(p)) {
+      selected = [r, c];
+      validHints = getMoves(r, c, board);
+      draw();
+    } else {
+      selected = null;
+      validHints = [];
+      draw();
+    }
+  }
+}
+
+function makeMove(sr, sc, r, c) {
+  let p = board[sr][sc];
+  if (p === 'P' && r === 0) p = 'Q';
+  if (p === 'p' && r === 7) p = 'q';
+  board[r][c] = p;
+  board[sr][sc] = '';
+}
+
+function aiMove() {
+  let allMoves = [];
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      if (isBlack(board[r][c])) {
+        for (let [nr, nc] of getMoves(r, c, board)) {
+          const target = board[nr][nc];
+          const score = (target ? VALS[target.toLowerCase()] : 0) + Math.random() * 2;
+          allMoves.push({sr: r, sc: c, r: nr, c: nc, score});
+        }
+      }
+    }
+  }
+  if (allMoves.length === 0) {
+    document.getElementById('status').textContent = 'Партия окончена!';
+    return;
+  }
+  allMoves.sort((a, b) => b.score - a.score);
+  const best = allMoves[0];
+  const captured = board[best.r][best.c];
+  makeMove(best.sr, best.sc, best.r, best.c);
+  lastMove = [best.sr, best.sc, best.r, best.c];
+  turn = 'w';
+  draw();
+  if (captured === 'K') document.getElementById('status').textContent = 'Король взят! Нажмите Новая партия.';
+  else document.getElementById('status').textContent = 'Ваш ход (Белые)';
+}
+
+function resetGame() { initBoard(); }
+initBoard();
 </script>
 </body>
 </html>
