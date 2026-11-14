@@ -44,10 +44,11 @@ const isW=p=>p&&p===p.toUpperCase(),isB=p=>p&&p===p.toLowerCase();
 function moves(r,c){
 const p=B[r][c];if(!p)return[];const res=[],w=isW(p),t=p.toLowerCase();
 const add=(nr,nc)=>{if(nr<0||nr>7||nc<0||nc>7)return false;if(!B[nr][nc]){res.push({sr:r,sc:c,r:nr,c:nc});return true}if(w!==isW(B[nr][nc]))res.push({sr:r,sc:c,r:nr,c:nc});return false};
+const ray=(dr,dc)=>{let nr=r+dr,nc=c+dc;while(add(nr,nc)){nr+=dr;nc+=dc}};
 if(t==='p'){const d=w?-1:1,s=w?6:1;if(r+d>=0&&r+d<=7&&!B[r+d][c]){res.push({sr:r,sc:c,r:r+d,c:c});if(r===s&&!B[r+2*d][c])res.push({sr:r,sc:c,r:r+2*d,c:c})}[-1,1].forEach(dc=>{if(r+d>=0&&r+d<=7&&c+dc>=0&&c+dc<=7&&B[r+d][c+dc]&&w!==isW(B[r+d][c+dc]))res.push({sr:r,sc:c,r:r+d,c:c+dc})})}
-else if(t==='n')[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(z=>add(r+z.at(0),c+z.at(1)));
+else if(t==='n'){add(r-2,c-1);add(r-2,c+1);add(r-1,c-2);add(r-1,c+2);add(r+1,c-2);add(r+1,c+2);add(r+2,c-1);add(r+2,c+1)}
 else if(t==='k'){for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++)if(i||j)add(r+i,c+j)}
-else{const ds=[];if(t==='r'||t==='q')ds.push([-1,0],[1,0],[0,-1],[0,1]);if(t==='b'||t==='q')ds.push([-1,-1],[-1,1],[1,-1],[1,1]);ds.forEach(z=>{let nr=r+z.at(0),nc=c+z.at(1);while(add(nr,nc)){nr+=z.at(0);nc+=z.at(1)}})}
+else{if(t==='r'||t==='q'){ray(-1,0);ray(1,0);ray(0,-1);ray(0,1)}if(t==='b'||t==='q'){ray(-1,-1);ray(-1,1);ray(1,-1);ray(1,1)}}
 return res}
 function fen(){return B.map(rw=>{let s='',e=0;rw.forEach(v=>{if(!v)e++;else{if(e){s+=e;e=0}s+=v}});return e?s+e:s}).join('/')+' '+trn+' - - 0 1'}
 function draw(){
@@ -80,4 +81,8 @@ if(col==='b'){document.getElementById('st').textContent=ok?'Stockfish думае
 else document.getElementById('st').textContent='Ваш ход (Белые)'}
 (async()=>{try{const r=await fetch('https://cloudflare.com');sf=new Worker(URL.createObjectURL(new Blob([await r.text()],{type:'application/javascript'})));
 sf.onmessage=e=>{const l=e.data;if(l==='uciok'){ok=true;if(trn!==col){sf.postMessage('position fen '+fen());sf.postMessage('go movetime 900')}else document.getElementById('st').textContent='Ваш ход ('+(col==='w'?'Белые':'Чёрные')+')'}
-else if(l.startsWith('bestmove')){const m=l.split(' ').at(1);if(m&&m!=='(none)'&&trn!==
+else if(l.startsWith('bestmove')){const m=l.split(' ').at(1);if(m&&m!=='(none)'&&trn!==col)go({sr:8-m.charAt(1),sc:'abcdefgh'.indexOf(m.charAt(0)),r:8-m.charAt(3),c:'abcdefgh'.indexOf(m.charAt(2))})}};sf.postMessage('uci')}catch(e){document.getElementById('st').textContent='Ваш ход ('+(col==='w'?'Белые':'Чёрные')+')'}})();
+init('w');
+</script>
+</body>
+</html>
