@@ -3,112 +3,146 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>MATRIX OS // TERMINAL ACCESS</title>
+<title>CYBORG VISION // JENIA AI</title>
+<script src="https://jsdelivr.net"></script>
+<script src="https://jsdelivr.net"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#000;color:#00ff41;font-family:monospace;height:100vh;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;user-select:none}
-canvas{position:fixed;inset:0;z-index:0;opacity:0.45}
-.top{position:relative;z-index:1;padding:10px 14px;background:rgba(0,15,0,0.85);border-bottom:1px solid #00ff41;display:flex;justify-content:space-between;font-size:13px;font-weight:bold}
-#term{position:relative;z-index:1;flex:1;padding:12px;overflow-y:auto;font-size:13px;line-height:1.4;text-shadow:0 0 5px #00ff41;word-break:break-all}
-.btns{position:relative;z-index:1;padding:10px;background:rgba(0,10,0,0.9);border-top:1px solid #00ff41;display:flex;gap:8px;justify-content:center}
-button{flex:1;padding:12px 6px;background:#00290b;color:#00ff41;border:1px solid #00ff41;font-family:monospace;font-size:12px;font-weight:bold;cursor:pointer}
+body{background:#020604;color:#00ff41;font-family:monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:10px;user-select:none}
+.top{width:100%;max-width:440px;display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,25,8,0.9);border:1px solid #00ff41;margin-bottom:8px;font-size:12px;font-weight:bold}
+.view{position:relative;width:100%;max-width:440px;aspect-ratio:3/4;background:#000;border:2px solid #00ff41;box-shadow:0 0 25px rgba(0,255,65,0.3);overflow:hidden;border-radius:6px}
+video,canvas{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+.hud{position:absolute;inset:10px;border:1px dashed rgba(0,255,65,0.4);pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:8px;font-size:11px;text-shadow:0 0 4px #000}
+.btns{width:100%;max-width:440px;display:flex;gap:8px;margin-top:8px}
+button{flex:1;padding:12px 8px;background:#002b0d;color:#00ff41;border:1px solid #00ff41;font-family:monospace;font-weight:bold;font-size:13px;cursor:pointer;border-radius:6px}
 button:active{background:#00ff41;color:#000}
-button.red{border-color:#ff2a2a;color:#ff2a2a;background:#290000}
-button.red:active{background:#ff2a2a;color:#000}
-#popup{position:fixed;inset:0;z-index:99;background:rgba(0,0,0,0.88);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
-.box{border:3px solid #00ff41;padding:25px 20px;background:#001405;box-shadow:0 0 35px #00ff41;max-width:340px;width:100%}
-.box.err{border-color:#ff2a2a;background:#1a0000;box-shadow:0 0 35px #ff2a2a;color:#ff2a2a}
-.box h1{font-size:24px;margin-bottom:10px;letter-spacing:2px}
-.box p{font-size:14px;margin-bottom:18px}
+button.snap{background:linear-gradient(90deg,#f59e0b,#ffd700);color:#000;border:none}
+.log{width:100%;max-width:440px;margin-top:8px;background:rgba(0,18,6,0.9);border:1px solid rgba(0,255,65,0.4);padding:8px;border-radius:6px;height:78px;overflow-y:auto;font-size:11px}
+.log div{border-bottom:1px dashed rgba(0,255,65,0.15);padding:2px 0}
+.log span{color:#ffd700;font-weight:bold}
 </style>
 </head>
-<body onclick="typeChunk()">
-<canvas id="m"></canvas>
-<div class="top">
-  <span>[ NODE: JENIA-MAINFRAME ]</span>
-  <span id="pct">BYPASS: 0%</span>
-</div>
-<div id="term">ИНИЦИАЛИЗАЦИЯ ПРОТОКОЛА NEO...<br>НАЖИМАЙТЕ НА ЭКРАН ДЛЯ ВВОДА КОДА ВЗЛОМА...<br><br></div>
-<div class="btns" onclick="event.stopPropagation()">
-  <button onclick="autoHack()">АВТОВЗЛОМ</button>
-  <button onclick="showPop(true)">ДОСТУП [OK]</button>
-  <button class="red" onclick="showPop(false)">ТРЕВОГА</button>
-</div>
-<div id="popup" onclick="this.style.display='none'">
-  <div class="box" id="pbox">
-    <h1 id="ptitle">ACCESS GRANTED</h1>
-    <p id="pdesc">ПОДКЛЮЧЕНИЕ К ЦЕНТРАЛЬНОМУ СЕРВЕРУ ВЫПОЛНЕНО. УРОВЕНЬ ДОПУСКА: ADMIN (JENIA).</p>
-    <button onclick="document.getElementById('popup').style.display='none'">ЗАКРЫТЬ ОКНО</button>
+<body>
+  <div class="top">
+    <span>[ CYBORG AI // JENIA ]</span>
+    <span id="cnt">ЦЕЛЕЙ В СЕТИ: ...</span>
   </div>
-</div>
+
+  <div class="view">
+    <video id="vid" autoplay playsinline muted></video>
+    <canvas id="cvs"></canvas>
+    <div class="hud">
+      <div id="st">СТАТУС: НАЖМИ «ЗАПУСТИТЬ СКАНЕР»</div>
+      <div>SYS: T-800 NEURAL NET // MODE: LIVE</div>
+    </div>
+  </div>
+
+  <div class="btns">
+    <button id="startBtn" onclick="startCam()">ЗАПУСТИТЬ СКАНЕР</button>
+    <button class="snap" onclick="capture()">СНИМОК ЦЕЛИ</button>
+  </div>
+
+  <div class="log" id="log">
+    <div><span>[СИСТЕМА]</span> Ожидание активации оптического сенсора...</div>
+  </div>
+
 <script>
-const cvs=document.getElementById('m'),ctx=cvs.getContext('2d');
-const ch='アイウエオカキクケコサシスセソタチツテト0123456789Z';
-let dr=[];
-function rm(){cvs.width=innerWidth;cvs.height=innerHeight;dr=Array(Math.floor(cvs.width/26)).fill(0).map(()=>Math.random()*-30)}
-onresize=rm;rm();
-setInterval(()=>{
-  ctx.fillStyle='rgba(0,0,0,0.14)';ctx.fillRect(0,0,cvs.width,cvs.height);
-  ctx.font='18px monospace';
-  for(let i=0;i<dr.length;i++){
-    ctx.fillStyle=Math.random()>0.9?'#fff':'#00ff41';
-    ctx.fillText(ch.charAt(Math.floor(Math.random()*ch.length)),i*26,dr[i]*26);
-    if(dr[i]*26>cvs.height&&Math.random()>0.96)dr[i]=0;else dr[i]++;
-  }
-},85);
+const API = 'https://counterapi.dev';
+const DICT = {
+  person:'ЧЕЛОВЕК', car:'АВТОМОБИЛЬ', cat:'КОТ', dog:'СОБАКА',
+  cell_phone:'СМАРТФОН', laptop:'НОУТБУК', cup:'ЧАШКА', bottle:'БУТЫЛКА',
+  chair:'СТУЛ', tv:'МОНИТОР/ТВ', keyboard:'КЛАВИАТУРА', book:'КНИГА',
+  bicycle:'ВЕЛОСИПЕД', motorcycle:'МОТОЦИКЛ', bus:'АВТОБУС', clock:'ЧАСЫ'
+};
+let model = null, running = false, lastObjects = [];
+const vid = document.getElementById('vid'), cvs = document.getElementById('cvs'), ctx = cvs.getContext('2d');
 
-const lines=[
-  "ssh root@198.51.100.42 -p 443 --force-ssl",
-  "Bypassing SHA-512 firewall encryption... [OK]",
-  "Injecting kernel payload 0x8F9A2C4E into memory...",
-  "Scanning open ports: 22, 80, 443, 8080, 31337...",
-  "Decrypted RSA-4096 key: 9A:4F:11:E8:0C:77:B2:D5",
-  "Downloading classified_archive_2026.tar.gz [48.2 GB]...",
-  "Routing connection via proxy: Minsk -> Tokyo -> Zurich...",
-  "WARNING: Trace program detected! Deploying stealth mask...",
-  "Overriding biometric lock... User: JENIA_ADMIN",
-  "Executing SQL dump: SELECT * FROM global_satellites;"
-];
-let progress=0,timer=null;
-
-function typeChunk(){
-  const t=document.getElementById('term');
-  const rnd=lines[Math.floor(Math.random()*lines.length)];
-  const hex=Math.random().toString(16).substring(2,10).toUpperCase();
-  t.innerHTML+=`> [${hex}] ${rnd}<br>`;
-  t.scrollTop=t.scrollHeight;
-  if(progress<100){
-    progress+=Math.floor(Math.random()*7)+2;
-    if(progress>=100){progress=100;showPop(true)}
-    document.getElementById('pct').textContent=`BYPASS: ${progress}%`;
+async function updateCounter(hit) {
+  try {
+    const res = await fetch(hit ? `${API}/scans/up` : `${API}/scans`);
+    const data = await res.json();
+    document.getElementById('cnt').textContent = 'ЦЕЛЕЙ В СЕТИ: ' + ((data.count || 1) + 410);
+  } catch (e) {
+    document.getElementById('cnt').textContent = 'ЦЕЛЕЙ В СЕТИ: 412';
   }
 }
 
-function autoHack(){
-  if(timer)clearInterval(timer);
-  progress=0;
-  document.getElementById('term').innerHTML="ЗАПУСК АВТОМАТИЧЕСКОГО ПОДБОРА КЛЮЧЕЙ...<br>";
-  timer=setInterval(()=>{
-    typeChunk();
-    if(progress>=100){clearInterval(timer);timer=null}
-  },160);
+function addLog(text) {
+  const l = document.getElementById('log');
+  const d = document.createElement('div');
+  const time = new Date().toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  d.innerHTML = `<span>[${time}]</span> ${text}`;
+  l.prepend(d);
 }
 
-function showPop(ok){
-  if(timer){clearInterval(timer);timer=null}
-  const pop=document.getElementById('popup'),box=document.getElementById('pbox');
-  const title=document.getElementById('ptitle'),desc=document.getElementById('pdesc');
-  if(ok){
-    box.className='box';
-    title.textContent='ACCESS GRANTED';
-    desc.textContent='ВЗЛОМ ЗАВЕРШЁН НА 100%. ВСЕ СИСТЕМЫ ПОД КОНТРОЛЕМ JENIA.';
-  }else{
-    box.className='box err';
-    title.textContent='SYSTEM ALERT!';
-    desc.textContent='ОБНАРУЖЕНО ВТОРЖЕНИЕ! СРАБОТАЛА ЗАЩИТА ПЕРИМЕТРА. СРОЧНО СМЕНИТЕ IP!';
+async function startCam() {
+  if (running) return;
+  const st = document.getElementById('st');
+  st.textContent = 'ЗАГРУЗКА НЕЙРОСЕТИ (3-5 СЕК)...';
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}, audio: false});
+    vid.srcObject = stream;
+    await new Promise(r => vid.onloadedmetadata = r);
+    cvs.width = vid.videoWidth;
+    cvs.height = vid.videoHeight;
+    if (!model) model = await cocoSsd.load();
+    running = true;
+    document.getElementById('startBtn').textContent = 'СКАНЕР АКТИВЕН';
+    st.textContent = 'ПОИСК ОБЪЕКТОВ В РЕАЛЬНОМ ВРЕМЕНИ...';
+    addLog('Нейросеть COCO-SSD подключена к камере.');
+    detectLoop();
+  } catch (err) {
+    st.textContent = 'ОШИБКА: РАЗРЕШИТЕ ДОСТУП К КАМЕРЕ!';
   }
-  pop.style.display='flex';
 }
+
+async function detectLoop() {
+  if (!running) return;
+  const preds = await model.detect(vid);
+  lastObjects = preds;
+  ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+  preds.forEach(p => {
+    const [x, y, w, h] = p.bbox;
+    const rawKey = p.class.replace(' ', '_');
+    const name = DICT[rawKey] || p.class.toUpperCase();
+    const conf = Math.round(p.score * 100);
+    const isHuman = p.class === 'person';
+
+    ctx.strokeStyle = isHuman ? '#ff2a2a' : '#00ff41';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x, y, w, h);
+
+    ctx.fillStyle = isHuman ? 'rgba(255,42,42,0.85)' : 'rgba(0,255,65,0.85)';
+    ctx.fillRect(x, y > 24 ? y - 24 : y, w, 24);
+
+    ctx.fillStyle = isHuman ? '#fff' : '#000';
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText(`TARGET: ${name} [${conf}%]`, x + 6, y > 24 ? y - 7 : y + 17);
+  });
+
+  requestAnimationFrame(detectLoop);
+}
+
+function capture() {
+  if (!running) { alert('Сначала нажмите «ЗАПУСТИТЬ СКАНЕР»!'); return; }
+  const out = document.createElement('canvas');
+  out.width = cvs.width; out.height = cvs.height;
+  const octx = out.getContext('2d');
+  octx.drawImage(vid, 0, 0, out.width, out.height);
+  octx.drawImage(cvs, 0, 0);
+
+  const found = lastObjects.map(o => DICT[o.class.replace(' ', '_')] || o.class.toUpperCase()).join(', ') || 'ФОНОВОЕ ПРОСТРАНСТВО';
+  addLog(`ЗАФИКСИРОВАНО: ${found}`);
+  updateCounter(true);
+
+  const a = document.createElement('a');
+  a.href = out.toDataURL('image/png');
+  a.download = 'cyborg_target_' + Date.now() + '.png';
+  a.click();
+}
+
+updateCounter(false);
 </script>
 </body>
 </html>
