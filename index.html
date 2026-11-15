@@ -3,83 +3,113 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>ANTIFRAUD v3.2 // JENIA</title>
+<title>ISS LIVE TRACKER // JENIA ORBITAL</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#060911;color:#e2e8f0;font-family:monospace;padding:10px;display:flex;flex-direction:column;align-items:center}
-.w{width:100%;max-width:500px}
-header{border-bottom:1px solid #1e293b;padding-bottom:8px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
-h1{font-size:15px;color:#38bdf8}.b{background:#0f291e;color:#10b981;border:1px solid #10b981;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700}
-.sc{background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:10px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
-.sv{font-size:26px;font-weight:700;color:#f59e0b}.sl{font-size:11px;color:#94a3b8;margin-top:2px}
-.fl{background:#290d14;border:1px solid #f43f5e;border-radius:8px;padding:8px;margin-bottom:10px;display:none}
-.ft{color:#f43f5e;font-size:11px;font-weight:700;margin-bottom:4px}.fl ul{padding-left:15px;font-size:11px;color:#fecdd3}
-.s{background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:8px 10px;margin-bottom:8px}
-.st{font-size:10px;color:#38bdf8;margin-bottom:5px;font-weight:700;border-bottom:1px solid #1e293b;padding-bottom:3px}
-.r{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed #1e293b;font-size:11.5px;gap:6px}
-.r:last-child{border:none}.k{color:#94a3b8}.v{color:#f8fafc;font-weight:700;text-align:right;word-break:break-all}
-.warn{color:#f43f5e}.ok{color:#10b981}.mid{color:#f59e0b}
-.bs{display:flex;gap:6px;margin-top:8px}
-button{flex:1;padding:11px 4px;border:none;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;background:#0284c7;color:#fff}
-button.re{background:#10b981;color:#02140c}button.s2{background:#1e293b;color:#e2e8f0;border:1px solid #334155}
+body{background:#050810;color:#e2e8f0;font-family:monospace;padding:12px;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.w{width:100%;max-width:500px;background:#0b111e;border:1px solid #1e293b;border-radius:8px;padding:14px;box-shadow:0 0 25px rgba(0,0,0,0.6)}
+header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e293b;padding-bottom:10px;margin-bottom:12px}
+h1{font-size:15px;color:#38bdf8}
+.live{background:rgba(16,185,129,0.15);color:#10b981;border:1px solid #10b981;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:bold}
+canvas{width:100%;height:190px;background:#03060c;border:1px solid #1e293b;border-radius:6px;display:block;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.box{background:#0f172a;border:1px solid #1e293b;padding:9px;border-radius:6px}
+.lbl{font-size:10px;color:#94a3b8;margin-bottom:3px;text-transform:uppercase}
+.val{font-size:14px;font-weight:bold;color:#f8fafc}
+.hi{color:#38bdf8}
+.bar{background:#0f172a;border:1px solid #1e293b;padding:10px;border-radius:6px;font-size:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.btns{display:flex;gap:8px}
+button{flex:1;padding:12px 6px;border:none;border-radius:6px;font-family:monospace;font-weight:bold;font-size:12px;cursor:pointer;background:#0284c7;color:#fff}
+button:active{transform:scale(0.98)}
+button.s2{background:#1e293b;color:#e2e8f0;border:1px solid #334155}
 </style>
 </head>
 <body>
 <div class="w">
-<header><h1>[ ANTIFRAUD // JENIA ]</h1><span class="b">DEEP SCAN v3.2</span></header>
-<div class="sc"><div><div style="font-size:13px;font-weight:700">ИНДЕКС АНОНИМНОСТИ</div><div class="sl" id="sum">Готов...</div></div><div class="sv" id="scr">--%</div></div>
-<div class="fl" id="fb"><div class="ft">НЕСТЫКОВКИ (RED FLAGS):</div><ul id="flist"></ul></div>
-<div class="s"><div class="st">1. СЕТЬ, WEBRTC И ПИНГ</div>
-<div class="r"><span class="k">Публичный IP:</span><span class="v" id="ip">...</span></div>
-<div class="r"><span class="k">Утечка WebRTC:</span><span class="v" id="rtc">...</span></div>
-<div class="r"><span class="k">Пинг (Cloudflare):</span><span class="v" id="png">...</span></div>
-<div class="r"><span class="k">Локация / Сеть:</span><span class="v" id="loc">...</span></div></div>
-<div class="s"><div class="st">2. АППАРАТНЫЕ СЛЕПКИ</div>
-<div class="r"><span class="k">Canvas Hash:</span><span class="v" id="fpc">...</span></div>
-<div class="r"><span class="k">Audio DSP Hash:</span><span class="v" id="fpa">...</span></div>
-<div class="r"><span class="k">Шрифты ОС:</span><span class="v" id="fnt">...</span></div>
-<div class="r"><span class="k">Видеочип WebGL:</span><span class="v" id="gpu">...</span></div></div>
-<div class="s"><div class="st">3. СИСТЕМА И ДЕТЕКТОРЫ</div>
-<div class="r"><span class="k">Часовой пояс:</span><span class="v" id="tz">...</span></div>
-<div class="r"><span class="k">Языки / Железо:</span><span class="v" id="hw">...</span></div>
-<div class="r"><span class="k">Детектор бота:</span><span class="v" id="bot">...</span></div></div>
-<div class="bs"><button class="re" onclick="run()">НОВЫЙ СКАН</button><button onclick="cp()">ОТЧЁТ</button><button class="s2" onclick="sh()">В ЧАТ</button></div>
+  <header><h1>[ ISS TELEMETRY // JENIA ]</h1><span class="live" id="st">LIVE API</span></header>
+  <canvas id="map"></canvas>
+  <div class="grid">
+    <div class="box"><div class="lbl">Широта / Долгота</div><div class="val hi" id="crd">Запрос...</div></div>
+    <div class="box"><div class="lbl">Высота орбиты</div><div class="val" id="alt">...</div></div>
+    <div class="box"><div class="lbl">Скорость МКС</div><div class="val" id="spd">...</div></div>
+    <div class="box"><div class="lbl">Освещённость</div><div class="val" id="vis">...</div></div>
+  </div>
+  <div class="bar">
+    <span id="locLabel">До МКС от Гомеля:</span>
+    <b class="hi" id="dist">Расчёт...</b>
+  </div>
+  <div class="btns">
+    <button onclick="myGeo()">МОЯ ГЕОПОЗИЦИЯ</button>
+    <button class="s2" onclick="shareLink()">ОТПРАВИТЬ В ЧАТ</button>
+  </div>
 </div>
 <script>
-let rep="",flags=[];
-const addF=t=>{flags.push(t);document.getElementById('fb').style.display='block';const li=document.createElement('li');li.textContent=t;document.getElementById('flist').appendChild(li);};
-const hsh=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return"0x"+(h>>>0).toString(16).toUpperCase().padStart(8,'0');};
-function cvs(){const c=document.createElement('canvas');c.width=200;c.height=50;const x=c.getContext('2d');x.fillStyle="#f60";x.fillRect(80,10,50,20);x.fillStyle="#069";x.font="14px Arial";x.fillText("JeniaAudit_"+Date.now(),5,20);return hsh(c.toDataURL());}
-function fnts(){const l=["Roboto","Segoe UI","San Francisco","Ubuntu","Arial","Times New Roman","Georgia","Verdana"],sp=document.createElement("span");sp.style.cssText="font-size:72px;position:absolute;left:-9999px;font-family:monospace";sp.textContent="mmmmmmlli";document.body.appendChild(sp);const w=sp.offsetWidth,h=sp.offsetHeight,f=l.filter(n=>{sp.style.fontFamily="'"+n+"',monospace";return sp.offsetWidth!==w||sp.offsetHeight!==h;});document.body.removeChild(sp);return f;}
-async function aud(){try{const A=window.OfflineAudioContext||window.webkitOfflineAudioContext;if(!A)return"Нет";const c=new A(1,44100,44100),o=c.createOscillator(),m=c.createDynamicsCompressor();o.type="triangle";o.frequency.setValueAtTime(10000,0);o.connect(m);m.connect(c.destination);o.start(0);const b=await c.startRendering(),d=b.getChannelData(0);let s=0;for(let i=4500;i<5000;i++)s+=Math.abs(d[i]);return hsh(s.toString());}catch(e){return"Скрыто";}}
-function rtc(){return new Promise(r=>{const ips=new Set();try{const p=new RTCPeerConnection({iceServers:[{urls:"stun:://google.com"}]});p.createDataChannel("");p.onicecandidate=e=>{if(!e||!e.candidate){p.close();r(Array.from(ips));return;}const m=e.candidate.candidate.match(/([0-9]{1,3}(\.[0-9]{1,3}){3})/);if(m)ips.add(m.at(1));};p.createOffer().then(o=>p.setLocalDescription(o)).catch(()=>r([]));setTimeout(()=>{try{p.close();}catch(e){}r(Array.from(ips));},1800);}catch(e){r([]);}});}
-function gl(){try{const g=document.createElement('canvas').getContext('webgl'),d=g&&g.getExtension('WEBGL_debug_renderer_info');return d?g.getParameter(d.UNMASKED_RENDERER_WEBGL):"Скрыто";}catch(e){return"Блок";}}
-async function run(){
-flags=[];document.getElementById('fb').style.display='none';document.getElementById('flist').innerHTML='';document.getElementById('scr').textContent='...';document.getElementById('sum').textContent='Сканирование...';
-['ip','rtc','png','loc','fpc','fpa','fnt','gpu','tz','hw','bot'].forEach(i=>{const e=document.getElementById(i);e.textContent='...';e.className='v';});
-await new Promise(r=>setTimeout(r,150));let s=100;
-const h1=cvs();document.getElementById('fpc').textContent=h1;s-=10;
-const ah=await aud();document.getElementById('fpa').textContent=ah;if(ah.startsWith("0x"))s-=15;
-const fn=fnts();document.getElementById('fnt').textContent=fn.length+" шт ("+fn.slice(0,2).join(',')+")";if(fn.length>3)s-=10;
-const gp=gl();document.getElementById('gpu').textContent=gp;if(/NVIDIA|AMD|Adreno|Mali|Apple/i.test(gp))s-=15;
-const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||"Unknown";document.getElementById('tz').textContent=tz;
-const lg=navigator.language||"";document.getElementById('hw').textContent=lg+" | "+(navigator.hardwareConcurrency||"?")+"яд/"+(navigator.deviceMemory||"?")+"ГБ";
-const bt=navigator.webdriver===true,be=document.getElementById('bot');be.textContent=bt?"БОТ":"Человек";be.className="v "+(bt?"warn":"ok");if(bt){s-=30;addF("Флаг автоматизации WebDriver.");}
-const t0=performance.now(),pe=document.getElementById('png');try{await fetch('https://1.1.1',{mode:'no-cors',cache:'no-store'});const ms=Math.round(performance.now()-t0);pe.textContent=ms+" мс";pe.className="v "+(ms>160?"mid":"ok");if(ms>180)addF("Высокий пинг ("+ms+" мс) — признак VPN/Proxy.");}catch(e){pe.textContent="Блок";pe.className="v mid";}
-const ri=await rtc(),re=document.getElementById('rtc');let lip=null;
-if(!ri.length){re.textContent="Защищено";re.className="v ok";}else{const pub=ri.filter(i=>!i.startsWith("192.168.")&&!i.startsWith("10.")&&!i.startsWith("172."));if(pub.length){lip=pub.at(0);re.textContent="УТЕЧКА: "+lip;re.className="v warn";s-=25;addF("WebRTC сливает IP: "+lip);}else{re.textContent="Лок: "+ri.at(0);re.className="v mid";s-=5;}}
-let hip="Скрыт";try{const dt=await(await fetch('https://ipapi.co')).json();hip=dt.ip||"Скрыт";document.getElementById('ip').textContent=hip;document.getElementById('loc').textContent=(dt.country_name||"")+", "+(dt.city||"");s-=10;
-if(lip&&hip!=="Скрыт"&&lip!==hip){addF("УТЕЧКА VPN: HTTP "+hip+" != WebRTC "+lip);s-=20;}
-if(dt.timezone&&tz!=="Unknown"&&dt.timezone!==tz){addF("Конфликт времени: IP ("+dt.timezone+") != ("+tz+")");s-=15;}
-if(dt.country_code&&!["BY","RU","KZ","UA"].includes(dt.country_code)&&lg.toLowerCase().includes("ru")){addF("Языковой конфликт: IP "+dt.country_code+" при "+lg);s-=10;}
-}catch(e){document.getElementById('ip').textContent="Скрыт фильтром";document.getElementById('loc').textContent="Заблокировано";}
-s=Math.max(10,Math.min(99,s));const se=document.getElementById('scr');se.textContent=s+"%";se.style.color=s>=75?"#10b981":(s>=45?"#f59e0b":"#f43f5e");
-document.getElementById('sum').textContent=flags.length?"Найдено нестыковок: "+flags.length:"Аномалий нет.";
-rep="ANTIFRAUD v3.2:\nАнонимность: "+s+"%\nIP: "+hip+" | WebRTC: "+re.textContent+"\nПинг: "+pe.textContent+" | Шрифты: "+fn.length+"\nAudio: "+ah+"\nНестыковок: "+flags.length+"\nТест: "+location.origin+location.pathname+"?t="+Date.now();
+let uLat=52.4345,uLon=30.9754,trail=[];
+const cvs=document.getElementById('map'),ctx=cvs.getContext('2d');
+
+function calcDist(lat1,lon1,lat2,lon2){
+  const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return Math.round(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));
 }
-const cp=()=>{navigator.clipboard.writeText(rep);alert("Отчёт скопирован!");};
-const sh=()=>{const u=location.origin+location.pathname+"?t="+Date.now();if(navigator.share)navigator.share({title:'Antifraud v3.2',url:u});else{navigator.clipboard.writeText(u);alert("Свежая ссылка скопирована!");}};
-window.addEventListener('load',run);
+
+function drawMap(lat,lon){
+  const w=cvs.width=cvs.offsetWidth,h=cvs.height=190;
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle='#131c31';ctx.lineWidth=1;
+  for(let i=1;i<6;i++){ctx.beginPath();ctx.moveTo(w*i/6,0);ctx.lineTo(w*i/6,h);ctx.stroke();}
+  for(let i=1;i<4;i++){ctx.beginPath();ctx.moveTo(0,h*i/4);ctx.lineTo(w,h*i/4);ctx.stroke();}
+  ctx.strokeStyle='#1e3a5f';ctx.beginPath();ctx.moveTo(0,h/2);ctx.lineTo(w,h/2);ctx.stroke();
+
+  const ux=(uLon+180)/360*w,uy=(90-uLat)/180*h;
+  ctx.fillStyle='#10b981';ctx.beginPath();ctx.arc(ux,uy,3.5,0,Math.PI*2);ctx.fill();
+
+  trail.push({x:(lon+180)/360*w,y:(90-lat)/180*h});
+  if(trail.length>40)trail.shift();
+  ctx.strokeStyle='rgba(56,189,248,0.5)';ctx.lineWidth=2;ctx.beginPath();
+  trail.forEach((p,i)=>{if(i===0)ctx.moveTo(p.x,p.y);else if(Math.abs(p.x-trail.at(i-1).x)<w/2)ctx.lineTo(p.x,p.y);else ctx.moveTo(p.x,p.y);});
+  ctx.stroke();
+
+  const sx=(lon+180)/360*w,sy=(90-lat)/180*h;
+  ctx.fillStyle='#f59e0b';ctx.beginPath();ctx.arc(sx,sy,5,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(245,158,11,0.5)';ctx.beginPath();ctx.arc(sx,sy,11,0,Math.PI*2);ctx.stroke();
+}
+
+async function fetchISS(){
+  try{
+    const res=await fetch('https://wheretheiss.at');
+    const d=await res.json();
+    const lat=d.latitude,lon=d.longitude;
+    document.getElementById('crd').textContent=`${lat.toFixed(2)}°, ${lon.toFixed(2)}°`;
+    document.getElementById('alt').textContent=`${d.altitude.toFixed(1)} км`;
+    document.getElementById('spd').textContent=`${Math.round(d.velocity)} км/ч`;
+    document.getElementById('vis').textContent=d.visibility==='daylight'?'Дневная зона':'Тень Земли';
+    document.getElementById('dist').textContent=calcDist(uLat,uLon,lat,lon).toLocaleString('ru-RU')+' км';
+    document.getElementById('st').textContent='ONLINE';
+    drawMap(lat,lon);
+  }catch(e){
+    document.getElementById('st').textContent='API BLOCKED';
+  }
+}
+
+function myGeo(){
+  if(!navigator.geolocation){alert('Геолокация не поддерживается');return;}
+  document.getElementById('locLabel').textContent='Поиск координат...';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    uLat=pos.coords.latitude;uLon=pos.coords.longitude;
+    document.getElementById('locLabel').textContent='До МКС от вас:';
+    fetchISS();
+  },()=>{alert('Доступ к GPS запрещён браузером');document.getElementById('locLabel').textContent='До МКС от Гомеля:';});
+}
+
+function shareLink(){
+  const u=location.origin+location.pathname+'?t='+Date.now();
+  if(navigator.share)navigator.share({title:'ISS Live Tracker',url:u});
+  else{navigator.clipboard.writeText(u);alert('Ссылка на радар МКС скопирована!');}
+}
+
+fetchISS();
+setInterval(fetchISS,3000);
 </script>
 </body>
-                 </html>
+</html>
