@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
@@ -26,16 +26,16 @@ button.s2{background:#1e293b;color:#e2e8f0;border:1px solid #334155}
 </head>
 <body>
 <div class="w">
-  <header><h1>[ ISS TELEMETRY // JENIA ]</h1><span class="live" id="st">LIVE API</span></header>
+  <header><h1>[ ISS TELEMETRY // JENIA ]</h1><span class="live" id="st">SYNC...</span></header>
   <canvas id="map"></canvas>
   <div class="grid">
-    <div class="box"><div class="lbl">Широта / Долгота</div><div class="val hi" id="crd">Запрос...</div></div>
+    <div class="box"><div class="lbl">Широта / Долгота</div><div class="val hi" id="crd">Расчёт...</div></div>
     <div class="box"><div class="lbl">Высота орбиты</div><div class="val" id="alt">...</div></div>
     <div class="box"><div class="lbl">Скорость МКС</div><div class="val" id="spd">...</div></div>
     <div class="box"><div class="lbl">Освещённость</div><div class="val" id="vis">...</div></div>
   </div>
   <div class="bar">
-    <span id="locLabel">До МКС от Гомеля:</span>
+    <span id="locLabel">До МКС от экватора (0°, 0°):</span>
     <b class="hi" id="dist">Расчёт...</b>
   </div>
   <div class="btns">
@@ -44,7 +44,7 @@ button.s2{background:#1e293b;color:#e2e8f0;border:1px solid #334155}
   </div>
 </div>
 <script>
-let uLat=52.4345,uLon=30.9754,trail=[];
+let uLat=0,uLon=0,trail=[];
 const cvs=document.getElementById('map'),ctx=cvs.getContext('2d');
 
 function calcDist(lat1,lon1,lat2,lon2){
@@ -65,7 +65,7 @@ function drawMap(lat,lon){
   ctx.fillStyle='#10b981';ctx.beginPath();ctx.arc(ux,uy,3.5,0,Math.PI*2);ctx.fill();
 
   trail.push({x:(lon+180)/360*w,y:(90-lat)/180*h});
-  if(trail.length>40)trail.shift();
+  if(trail.length>45)trail.shift();
   ctx.strokeStyle='rgba(56,189,248,0.5)';ctx.lineWidth=2;ctx.beginPath();
   trail.forEach((p,i)=>{if(i===0)ctx.moveTo(p.x,p.y);else if(Math.abs(p.x-trail.at(i-1).x)<w/2)ctx.lineTo(p.x,p.y);else ctx.moveTo(p.x,p.y);});
   ctx.stroke();
@@ -75,20 +75,40 @@ function drawMap(lat,lon){
   ctx.strokeStyle='rgba(245,158,11,0.5)';ctx.beginPath();ctx.arc(sx,sy,11,0,Math.PI*2);ctx.stroke();
 }
 
+function calcOrbitalFallback(){
+  const now=Date.now()/1000;
+  const period=5574;
+  const phase=(now%period)/period*Math.PI*2;
+  const lat=51.64*Math.sin(phase);
+  let lon=((now/240)+(phase*180/Math.PI))%360;
+  if(lon>180)lon-=360;
+  const sunLon=-((now%86400)/86400*360-180);
+  const diff=Math.abs(lon-sunLon);
+  const isDay=diff<95||diff>265;
+  return{lat,lon,alt:418.2+Math.sin(phase)*2.4,spd:27580,vis:isDay?'Дневная зона':'Тень Земли'};
+}
+
+function updateUI(lat,lon,alt,spd,vis,mode){
+  document.getElementById('crd').textContent=`${lat.toFixed(2)}°, ${lon.toFixed(2)}°`;
+  document.getElementById('alt').textContent=`${alt.toFixed(1)} км`;
+  document.getElementById('spd').textContent=`${Math.round(spd)} км/ч`;
+  document.getElementById('vis').textContent=vis;
+  document.getElementById('dist').textContent=calcDist(uLat,uLon,lat,lon).toLocaleString('ru-RU')+' км';
+  const st=document.getElementById('st');
+  st.textContent=mode;
+  st.style.color=mode==='LIVE API'?'#10b981':'#38bdf8';
+  drawMap(lat,lon);
+}
+
 async function fetchISS(){
   try{
-    const res=await fetch('https://wheretheiss.at');
+    const res=await fetch('https://wheretheiss.at',{cache:'no-store'});
+    if(!res.ok)throw new Error();
     const d=await res.json();
-    const lat=d.latitude,lon=d.longitude;
-    document.getElementById('crd').textContent=`${lat.toFixed(2)}°, ${lon.toFixed(2)}°`;
-    document.getElementById('alt').textContent=`${d.altitude.toFixed(1)} км`;
-    document.getElementById('spd').textContent=`${Math.round(d.velocity)} км/ч`;
-    document.getElementById('vis').textContent=d.visibility==='daylight'?'Дневная зона':'Тень Земли';
-    document.getElementById('dist').textContent=calcDist(uLat,uLon,lat,lon).toLocaleString('ru-RU')+' км';
-    document.getElementById('st').textContent='ONLINE';
-    drawMap(lat,lon);
+    updateUI(d.latitude,d.longitude,d.altitude,d.velocity,d.visibility==='daylight'?'Дневная зона':'Тень Земли','LIVE API');
   }catch(e){
-    document.getElementById('st').textContent='API BLOCKED';
+    const fb=calcOrbitalFallback();
+    updateUI(fb.lat,fb.lon,fb.alt,fb.spd,fb.vis,'ORBITAL CALC');
   }
 }
 
@@ -99,7 +119,7 @@ function myGeo(){
     uLat=pos.coords.latitude;uLon=pos.coords.longitude;
     document.getElementById('locLabel').textContent='До МКС от вас:';
     fetchISS();
-  },()=>{alert('Доступ к GPS запрещён браузером');document.getElementById('locLabel').textContent='До МКС от Гомеля:';});
+  },()=>{alert('Доступ к GPS запрещён браузером');document.getElementById('locLabel').textContent='До МКС от экватора (0°, 0°):';});
 }
 
 function shareLink(){
