@@ -3,146 +3,175 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>CYBORG VISION // JENIA AI</title>
-<script src="https://jsdelivr.net"></script>
-<script src="https://jsdelivr.net"></script>
+<title>CYBER DODGE // JENIA ARCADE</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#020604;color:#00ff41;font-family:monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:10px;user-select:none}
-.top{width:100%;max-width:440px;display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,25,8,0.9);border:1px solid #00ff41;margin-bottom:8px;font-size:12px;font-weight:bold}
-.view{position:relative;width:100%;max-width:440px;aspect-ratio:3/4;background:#000;border:2px solid #00ff41;box-shadow:0 0 25px rgba(0,255,65,0.3);overflow:hidden;border-radius:6px}
-video,canvas{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
-.hud{position:absolute;inset:10px;border:1px dashed rgba(0,255,65,0.4);pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:8px;font-size:11px;text-shadow:0 0 4px #000}
-.btns{width:100%;max-width:440px;display:flex;gap:8px;margin-top:8px}
-button{flex:1;padding:12px 8px;background:#002b0d;color:#00ff41;border:1px solid #00ff41;font-family:monospace;font-weight:bold;font-size:13px;cursor:pointer;border-radius:6px}
-button:active{background:#00ff41;color:#000}
-button.snap{background:linear-gradient(90deg,#f59e0b,#ffd700);color:#000;border:none}
-.log{width:100%;max-width:440px;margin-top:8px;background:rgba(0,18,6,0.9);border:1px solid rgba(0,255,65,0.4);padding:8px;border-radius:6px;height:78px;overflow-y:auto;font-size:11px}
-.log div{border-bottom:1px dashed rgba(0,255,65,0.15);padding:2px 0}
-.log span{color:#ffd700;font-weight:bold}
+body{background:#03070b;color:#fff;font-family:monospace;height:100vh;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;user-select:none}
+canvas{display:block;background:radial-gradient(circle at center,#071921 0%,#020508 100%);box-shadow:0 0 30px rgba(0,255,170,0.2);border:1px solid #00ffaa}
+#hud{position:fixed;top:12px;width:92vw;max-width:420px;display:flex;justify-content:space-between;font-size:16px;font-weight:bold;color:#00ffaa;text-shadow:0 0 8px #00ffaa;pointer-events:none;z-index:2}
+#menu{position:fixed;inset:0;background:rgba(2,6,10,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;z-index:5}
+h1{font-size:26px;color:#00ffaa;text-shadow:0 0 15px #00ffaa;margin-bottom:8px;letter-spacing:2px}
+p{font-size:14px;color:#94a3b8;margin-bottom:18px;max-width:300px;line-height:1.4}
+.res{font-size:20px;color:#ffd700;font-weight:bold;margin-bottom:16px;display:none}
+button{width:240px;padding:14px;margin-bottom:10px;border:none;border-radius:8px;font-family:monospace;font-size:16px;font-weight:bold;cursor:pointer;background:linear-gradient(90deg,#00c880,#00ffaa);color:#020a08;box-shadow:0 0 15px rgba(0,255,170,0.4)}
+button:active{transform:scale(0.96)}
+button.chal{background:linear-gradient(90deg,#f59e0b,#ffd700);color:#000;display:none}
 </style>
 </head>
 <body>
-  <div class="top">
-    <span>[ CYBORG AI // JENIA ]</span>
-    <span id="cnt">ЦЕЛЕЙ В СЕТИ: ...</span>
+  <div id="hud">
+    <span>СЧЁТ: <b id="sc">0</b></span>
+    <span>РЕКОРД: <b id="hi">0</b></span>
   </div>
 
-  <div class="view">
-    <video id="vid" autoplay playsinline muted></video>
-    <canvas id="cvs"></canvas>
-    <div class="hud">
-      <div id="st">СТАТУС: НАЖМИ «ЗАПУСТИТЬ СКАНЕР»</div>
-      <div>SYS: T-800 NEURAL NET // MODE: LIVE</div>
-    </div>
-  </div>
+  <canvas id="c"></canvas>
 
-  <div class="btns">
-    <button id="startBtn" onclick="startCam()">ЗАПУСТИТЬ СКАНЕР</button>
-    <button class="snap" onclick="capture()">СНИМОК ЦЕЛИ</button>
-  </div>
-
-  <div class="log" id="log">
-    <div><span>[СИСТЕМА]</span> Ожидание активации оптического сенсора...</div>
+  <div id="menu">
+    <h1 id="title">CYBER DODGE</h1>
+    <p id="desc">Двигай пальцем по экрану, уворачивайся от красных барьеров и собирай золотые энергоблоки.</p>
+    <div class="res" id="resBox">ТВОЙ СЧЁТ: 0</div>
+    <button onclick="startGame()">ИГРАТЬ</button>
+    <button class="chal" id="chalBtn" onclick="shareScore()">БРОСИТЬ ВЫЗОВ ДРУГУ</button>
   </div>
 
 <script>
-const API = 'https://counterapi.dev';
-const DICT = {
-  person:'ЧЕЛОВЕК', car:'АВТОМОБИЛЬ', cat:'КОТ', dog:'СОБАКА',
-  cell_phone:'СМАРТФОН', laptop:'НОУТБУК', cup:'ЧАШКА', bottle:'БУТЫЛКА',
-  chair:'СТУЛ', tv:'МОНИТОР/ТВ', keyboard:'КЛАВИАТУРА', book:'КНИГА',
-  bicycle:'ВЕЛОСИПЕД', motorcycle:'МОТОЦИКЛ', bus:'АВТОБУС', clock:'ЧАСЫ'
-};
-let model = null, running = false, lastObjects = [];
-const vid = document.getElementById('vid'), cvs = document.getElementById('cvs'), ctx = cvs.getContext('2d');
+const cvs=document.getElementById('c'),ctx=cvs.getContext('2d');
+let W,H;
+function resize(){W=cvs.width=Math.min(innerWidth,440);H=cvs.height=innerHeight;}
+resize();window.onresize=resize;
 
-async function updateCounter(hit) {
-  try {
-    const res = await fetch(hit ? `${API}/scans/up` : `${API}/scans`);
-    const data = await res.json();
-    document.getElementById('cnt').textContent = 'ЦЕЛЕЙ В СЕТИ: ' + ((data.count || 1) + 410);
-  } catch (e) {
-    document.getElementById('cnt').textContent = 'ЦЕЛЕЙ В СЕТИ: 412';
+let best=parseInt(localStorage.getItem('jenia_dodge_hi')||'0',10);
+document.getElementById('hi').textContent=best;
+
+let playing=false,score=0,speed=4,player={x:0,y:0,r:14},obs=[],gems=[],parts=[],frame=0;
+let audioCtx=null;
+
+function beep(freq,dur,type='sine'){
+  try{
+    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type=type;o.frequency.value=freq;
+    g.gain.setValueAtTime(0.08,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);
+    o.connect(g);g.connect(audioCtx.destination);
+    o.start();o.stop(audioCtx.currentTime+dur);
+  }catch(e){}
+}
+
+function boom(x,y,col){
+  for(let i=0;i<14;i++){
+    const a=Math.random()*Math.PI*2,v=Math.random()*4+1;
+    parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:25,c:col});
   }
 }
 
-function addLog(text) {
-  const l = document.getElementById('log');
-  const d = document.createElement('div');
-  const time = new Date().toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-  d.innerHTML = `<span>[${time}]</span> ${text}`;
-  l.prepend(d);
+function startGame(){
+  document.getElementById('menu').style.display='none';
+  score=0;speed=4.2;obs=[];gems=[];parts=[];frame=0;
+  player.x=W/2;player.y=H*0.8;
+  playing=true;
+  beep(520,0.15,'triangle');
+  loop();
 }
 
-async function startCam() {
-  if (running) return;
-  const st = document.getElementById('st');
-  st.textContent = 'ЗАГРУЗКА НЕЙРОСЕТИ (3-5 СЕК)...';
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}, audio: false});
-    vid.srcObject = stream;
-    await new Promise(r => vid.onloadedmetadata = r);
-    cvs.width = vid.videoWidth;
-    cvs.height = vid.videoHeight;
-    if (!model) model = await cocoSsd.load();
-    running = true;
-    document.getElementById('startBtn').textContent = 'СКАНЕР АКТИВЕН';
-    st.textContent = 'ПОИСК ОБЪЕКТОВ В РЕАЛЬНОМ ВРЕМЕНИ...';
-    addLog('Нейросеть COCO-SSD подключена к камере.');
-    detectLoop();
-  } catch (err) {
-    st.textContent = 'ОШИБКА: РАЗРЕШИТЕ ДОСТУП К КАМЕРЕ!';
+function movePlayer(clientX){
+  if(!playing)return;
+  const rect=cvs.getBoundingClientRect();
+  let nx=clientX-rect.left;
+  if(nx<player.r+6)nx=player.r+6;
+  if(nx>W-player.r-6)nx=W-player.r-6;
+  player.x=nx;
+}
+window.addEventListener('pointermove',e=>movePlayer(e.clientX));
+window.addEventListener('pointerdown',e=>movePlayer(e.clientX));
+
+function gameOver(){
+  playing=false;
+  if(navigator.vibrate)navigator.vibrate([100,50,150]);
+  beep(140,0.4,'sawtooth');
+  boom(player.x,player.y,'#ff2a55');
+  if(score>best){
+    best=score;
+    localStorage.setItem('jenia_dodge_hi',best);
+    document.getElementById('hi').textContent=best;
   }
+  document.getElementById('title').textContent='СИСТЕМА СБИТА';
+  document.getElementById('desc').textContent='Отличная реакция! Попробуй продержаться ещё дольше или отправь вызов в чат.';
+  const rb=document.getElementById('resBox');
+  rb.style.display='block';rb.textContent='НАБРАНО ОЧКОВ: '+score;
+  document.getElementById('chalBtn').style.display='block';
+  document.getElementById('menu').style.display='flex';
 }
 
-async function detectLoop() {
-  if (!running) return;
-  const preds = await model.detect(vid);
-  lastObjects = preds;
-  ctx.clearRect(0, 0, cvs.width, cvs.height);
-
-  preds.forEach(p => {
-    const [x, y, w, h] = p.bbox;
-    const rawKey = p.class.replace(' ', '_');
-    const name = DICT[rawKey] || p.class.toUpperCase();
-    const conf = Math.round(p.score * 100);
-    const isHuman = p.class === 'person';
-
-    ctx.strokeStyle = isHuman ? '#ff2a2a' : '#00ff41';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(x, y, w, h);
-
-    ctx.fillStyle = isHuman ? 'rgba(255,42,42,0.85)' : 'rgba(0,255,65,0.85)';
-    ctx.fillRect(x, y > 24 ? y - 24 : y, w, 24);
-
-    ctx.fillStyle = isHuman ? '#fff' : '#000';
-    ctx.font = 'bold 14px monospace';
-    ctx.fillText(`TARGET: ${name} [${conf}%]`, x + 6, y > 24 ? y - 7 : y + 17);
-  });
-
-  requestAnimationFrame(detectLoop);
+function shareScore(){
+  const txt=`⚡ Я набрал ${score} очков в кибер-аркаде от Jenia! Сможешь побить мой рекорд? Жми: ${location.origin+location.pathname}`;
+  if(navigator.share)navigator.share({title:'Cyber Dodge Jenia',text:txt,url:location.origin+location.pathname});
+  else{navigator.clipboard.writeText(txt);document.getElementById('chalBtn').textContent='ВЫЗОВ СКОПИРОВАН В БУФЕР!';}
 }
 
-function capture() {
-  if (!running) { alert('Сначала нажмите «ЗАПУСТИТЬ СКАНЕР»!'); return; }
-  const out = document.createElement('canvas');
-  out.width = cvs.width; out.height = cvs.height;
-  const octx = out.getContext('2d');
-  octx.drawImage(vid, 0, 0, out.width, out.height);
-  octx.drawImage(cvs, 0, 0);
+function loop(){
+  if(!playing)return;
+  ctx.clearRect(0,0,W,H);
+  frame++;
+  score++;
+  if(frame%180===0)speed+=0.35;
+  document.getElementById('sc').textContent=score;
 
-  const found = lastObjects.map(o => DICT[o.class.replace(' ', '_')] || o.class.toUpperCase()).join(', ') || 'ФОНОВОЕ ПРОСТРАНСТВО';
-  addLog(`ЗАФИКСИРОВАНО: ${found}`);
-  updateCounter(true);
+  // Сетка фона
+  ctx.strokeStyle='rgba(0,255,170,0.06)';
+  ctx.lineWidth=1;
+  const off=(frame*speed)%40;
+  for(let y=off;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
 
-  const a = document.createElement('a');
-  a.href = out.toDataURL('image/png');
-  a.download = 'cyborg_target_' + Date.now() + '.png';
-  a.click();
+  // Генерация препятствий и бонусов
+  if(frame%Math.max(18,Math.floor(42-speed*2))===0){
+    const w=Math.random()*(W*0.42)+45;
+    const x=Math.random()*(W-w);
+    obs.push({x,y:-25,w,h:18});
+  }
+  if(frame%65===0){
+    gems.push({x:Math.random()*(W-40)+20,y:-20,r:10});
+  }
+
+  // Препятствия
+  ctx.fillStyle='#ff2a55';ctx.shadowBlur=12;ctx.shadowColor='#ff2a55';
+  for(let i=obs.length-1;i>=0;i--){
+    const o=obs.at(i);o.y+=speed;
+    ctx.fillRect(o.x,o.y,o.w,o.h);
+    if(player.x+player.r-3>o.x&&player.x-player.r+3<o.x+o.w&&player.y+player.r-3>o.y&&player.y-player.r+3<o.y+o.h){
+      gameOver();return;
+    }
+    if(o.y>H+30)obs.splice(i,1);
+  }
+
+  // Бонусные кристаллы
+  ctx.fillStyle='#ffd700';ctx.shadowColor='#ffd700';
+  for(let i=gems.length-1;i>=0;i--){
+    const g=gems.at(i);g.y+=speed*0.9;
+    ctx.beginPath();ctx.arc(g.x,g.y,g.r,0,Math.PI*2);ctx.fill();
+    const dx=player.x-g.x,dy=player.y-g.y;
+    if(Math.hypot(dx,dy)<player.r+g.r){
+      score+=100;beep(880,0.1,'sine');boom(g.x,g.y,'#ffd700');
+      gems.splice(i,1);continue;
+    }
+    if(g.y>H+30)gems.splice(i,1);
+  }
+
+  // Игрок
+  ctx.fillStyle='#00ffaa';ctx.shadowBlur=18;ctx.shadowColor='#00ffaa';
+  ctx.beginPath();ctx.arc(player.x,player.y,player.r,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(player.x,player.y,player.r*0.45,0,Math.PI*2);ctx.fill();
+
+  // Частицы
+  ctx.shadowBlur=0;
+  for(let i=parts.length-1;i>=0;i--){
+    const p=parts.at(i);p.x+=p.vx;p.y+=p.vy;p.life--;
+    ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,3,3);
+    if(p.life<=0)parts.splice(i,1);
+  }
+
+  requestAnimationFrame(loop);
 }
-
-updateCounter(false);
 </script>
 </body>
 </html>
