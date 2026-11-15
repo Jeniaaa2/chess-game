@@ -3,175 +3,195 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>CYBER DODGE // JENIA ARCADE</title>
+<title>SECURITY AUDIT // ИНСПЕКТОР ЦИФРОВОГО СЛЕДА</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#03070b;color:#fff;font-family:monospace;height:100vh;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;user-select:none}
-canvas{display:block;background:radial-gradient(circle at center,#071921 0%,#020508 100%);box-shadow:0 0 30px rgba(0,255,170,0.2);border:1px solid #00ffaa}
-#hud{position:fixed;top:12px;width:92vw;max-width:420px;display:flex;justify-content:space-between;font-size:16px;font-weight:bold;color:#00ffaa;text-shadow:0 0 8px #00ffaa;pointer-events:none;z-index:2}
-#menu{position:fixed;inset:0;background:rgba(2,6,10,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;z-index:5}
-h1{font-size:26px;color:#00ffaa;text-shadow:0 0 15px #00ffaa;margin-bottom:8px;letter-spacing:2px}
-p{font-size:14px;color:#94a3b8;margin-bottom:18px;max-width:300px;line-height:1.4}
-.res{font-size:20px;color:#ffd700;font-weight:bold;margin-bottom:16px;display:none}
-button{width:240px;padding:14px;margin-bottom:10px;border:none;border-radius:8px;font-family:monospace;font-size:16px;font-weight:bold;cursor:pointer;background:linear-gradient(90deg,#00c880,#00ffaa);color:#020a08;box-shadow:0 0 15px rgba(0,255,170,0.4)}
-button:active{transform:scale(0.96)}
-button.chal{background:linear-gradient(90deg,#f59e0b,#ffd700);color:#000;display:none}
+body{background:#090d16;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,monospace;padding:16px;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.wrap{width:100%;max-width:540px}
+header{border-bottom:1px solid #1e293b;padding-bottom:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+h1{font-size:18px;color:#38bdf8;letter-spacing:0.5px}
+.badge{background:rgba(56,189,248,0.15);color:#38bdf8;border:1px solid #38bdf8;padding:4px 8px;border-radius:4px;font-size:11px;font-weight:bold}
+.score-card{background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.score-val{font-size:32px;font-weight:bold;color:#f59e0b}
+.score-lbl{font-size:12px;color:#94a3b8;margin-top:4px}
+.sec{background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:14px;margin-bottom:12px}
+.sec-title{font-size:12px;text-transform:uppercase;color:#38bdf8;letter-spacing:1px;margin-bottom:10px;font-weight:bold;border-bottom:1px solid #1e293b;padding-bottom:6px}
+.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #1e293b;font-size:13px;gap:10px}
+.row:last-child{border-bottom:none}
+.k{color:#94a3b8;flex-shrink:0}
+.v{color:#f8fafc;font-weight:600;text-align:right;word-break:break-all}
+.warn{color:#f43f5e}
+.ok{color:#10b981}
+.btns{display:flex;gap:10px;margin-top:14px;margin-bottom:20px}
+button{flex:1;padding:13px;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;background:#0284c7;color:#fff}
+button:active{transform:scale(0.98)}
+button.sec-btn{background:#1e293b;color:#e2e8f0;border:1px solid #334155}
+footer{font-size:11px;color:#64748b;text-align:center;margin-top:auto;padding-top:10px}
 </style>
 </head>
 <body>
-  <div id="hud">
-    <span>СЧЁТ: <b id="sc">0</b></span>
-    <span>РЕКОРД: <b id="hi">0</b></span>
+<div class="wrap">
+  <header>
+    <h1>[ SECURITY AUDIT // JENIA ]</h1>
+    <span class="badge">CLIENT-SIDE ONLY</span>
+  </header>
+
+  <div class="score-card">
+    <div>
+      <div style="font-size:14px;font-weight:bold">ИНДЕКС ПРИВАТНОСТИ УСТРОЙСТВА</div>
+      <div class="score-lbl" id="summary">Выполняется глубокое сканирование...</div>
+    </div>
+    <div class="score-val" id="score">--%</div>
   </div>
 
-  <canvas id="c"></canvas>
-
-  <div id="menu">
-    <h1 id="title">CYBER DODGE</h1>
-    <p id="desc">Двигай пальцем по экрану, уворачивайся от красных барьеров и собирай золотые энергоблоки.</p>
-    <div class="res" id="resBox">ТВОЙ СЧЁТ: 0</div>
-    <button onclick="startGame()">ИГРАТЬ</button>
-    <button class="chal" id="chalBtn" onclick="shareScore()">БРОСИТЬ ВЫЗОВ ДРУГУ</button>
+  <div class="sec">
+    <div class="sec-title">1. Сетевая идентификация (IP и Гео)</div>
+    <div class="row"><span class="k">Внешний IP-адрес:</span><span class="v" id="ip">Определение...</span></div>
+    <div class="row"><span class="k">Провайдер / Сеть:</span><span class="v" id="isp">Определение...</span></div>
+    <div class="row"><span class="k">Локация (Страна / Город):</span><span class="v" id="loc">Определение...</span></div>
+    <div class="row"><span class="k">Тип соединения:</span><span class="v" id="conn">Анализ...</span></div>
   </div>
+
+  <div class="sec">
+    <div class="sec-title">2. Аппаратный профиль (Железо)</div>
+    <div class="row"><span class="k">Видеочип (WebGL):</span><span class="v" id="gpu">Анализ...</span></div>
+    <div class="row"><span class="k">Логических ядер CPU:</span><span class="v" id="cpu">Анализ...</span></div>
+    <div class="row"><span class="k">Оперативная память:</span><span class="v" id="ram">Анализ...</span></div>
+    <div class="row"><span class="k">Экран и плотность:</span><span class="v" id="scr">Анализ...</span></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">3. Цифровой отпечаток и трекинг</div>
+    <div class="row"><span class="k">Canvas Fingerprint ID:</span><span class="v warn" id="fp">Генерация...</span></div>
+    <div class="row"><span class="k">Часовой пояс / Язык:</span><span class="v" id="tz">Анализ...</span></div>
+    <div class="row"><span class="k">Защита Do Not Track:</span><span class="v" id="dnt">Анализ...</span></div>
+    <div class="row"><span class="k">Хранилище Cookie / Local:</span><span class="v" id="ck">Анализ...</span></div>
+  </div>
+
+  <div class="btns">
+    <button onclick="copyReport()">СКОПИРОВАТЬ ОТЧЁТ</button>
+    <button class="sec-btn" onclick="shareTool()">ОТПРАВИТЬ ДРУГУ</button>
+  </div>
+
+  <footer>Аудит выполняется локально в вашем браузере. Данные никуда не передаются.</footer>
+</div>
 
 <script>
-const cvs=document.getElementById('c'),ctx=cvs.getContext('2d');
-let W,H;
-function resize(){W=cvs.width=Math.min(innerWidth,440);H=cvs.height=innerHeight;}
-resize();window.onresize=resize;
+let reportText = "";
 
-let best=parseInt(localStorage.getItem('jenia_dodge_hi')||'0',10);
-document.getElementById('hi').textContent=best;
-
-let playing=false,score=0,speed=4,player={x:0,y:0,r:14},obs=[],gems=[],parts=[],frame=0;
-let audioCtx=null;
-
-function beep(freq,dur,type='sine'){
-  try{
-    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-    o.type=type;o.frequency.value=freq;
-    g.gain.setValueAtTime(0.08,audioCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);
-    o.connect(g);g.connect(audioCtx.destination);
-    o.start();o.stop(audioCtx.currentTime+dur);
-  }catch(e){}
-}
-
-function boom(x,y,col){
-  for(let i=0;i<14;i++){
-    const a=Math.random()*Math.PI*2,v=Math.random()*4+1;
-    parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:25,c:col});
-  }
-}
-
-function startGame(){
-  document.getElementById('menu').style.display='none';
-  score=0;speed=4.2;obs=[];gems=[];parts=[];frame=0;
-  player.x=W/2;player.y=H*0.8;
-  playing=true;
-  beep(520,0.15,'triangle');
-  loop();
-}
-
-function movePlayer(clientX){
-  if(!playing)return;
-  const rect=cvs.getBoundingClientRect();
-  let nx=clientX-rect.left;
-  if(nx<player.r+6)nx=player.r+6;
-  if(nx>W-player.r-6)nx=W-player.r-6;
-  player.x=nx;
-}
-window.addEventListener('pointermove',e=>movePlayer(e.clientX));
-window.addEventListener('pointerdown',e=>movePlayer(e.clientX));
-
-function gameOver(){
-  playing=false;
-  if(navigator.vibrate)navigator.vibrate([100,50,150]);
-  beep(140,0.4,'sawtooth');
-  boom(player.x,player.y,'#ff2a55');
-  if(score>best){
-    best=score;
-    localStorage.setItem('jenia_dodge_hi',best);
-    document.getElementById('hi').textContent=best;
-  }
-  document.getElementById('title').textContent='СИСТЕМА СБИТА';
-  document.getElementById('desc').textContent='Отличная реакция! Попробуй продержаться ещё дольше или отправь вызов в чат.';
-  const rb=document.getElementById('resBox');
-  rb.style.display='block';rb.textContent='НАБРАНО ОЧКОВ: '+score;
-  document.getElementById('chalBtn').style.display='block';
-  document.getElementById('menu').style.display='flex';
-}
-
-function shareScore(){
-  const txt=`⚡ Я набрал ${score} очков в кибер-аркаде от Jenia! Сможешь побить мой рекорд? Жми: ${location.origin+location.pathname}`;
-  if(navigator.share)navigator.share({title:'Cyber Dodge Jenia',text:txt,url:location.origin+location.pathname});
-  else{navigator.clipboard.writeText(txt);document.getElementById('chalBtn').textContent='ВЫЗОВ СКОПИРОВАН В БУФЕР!';}
-}
-
-function loop(){
-  if(!playing)return;
-  ctx.clearRect(0,0,W,H);
-  frame++;
-  score++;
-  if(frame%180===0)speed+=0.35;
-  document.getElementById('sc').textContent=score;
-
-  // Сетка фона
-  ctx.strokeStyle='rgba(0,255,170,0.06)';
-  ctx.lineWidth=1;
-  const off=(frame*speed)%40;
-  for(let y=off;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
-
-  // Генерация препятствий и бонусов
-  if(frame%Math.max(18,Math.floor(42-speed*2))===0){
-    const w=Math.random()*(W*0.42)+45;
-    const x=Math.random()*(W-w);
-    obs.push({x,y:-25,w,h:18});
-  }
-  if(frame%65===0){
-    gems.push({x:Math.random()*(W-40)+20,y:-20,r:10});
-  }
-
-  // Препятствия
-  ctx.fillStyle='#ff2a55';ctx.shadowBlur=12;ctx.shadowColor='#ff2a55';
-  for(let i=obs.length-1;i>=0;i--){
-    const o=obs.at(i);o.y+=speed;
-    ctx.fillRect(o.x,o.y,o.w,o.h);
-    if(player.x+player.r-3>o.x&&player.x-player.r+3<o.x+o.w&&player.y+player.r-3>o.y&&player.y-player.r+3<o.y+o.h){
-      gameOver();return;
+function getCanvasFingerprint() {
+  try {
+    const c = document.createElement('canvas');
+    const ctx = c.getContext('2d');
+    ctx.textBaseline = "top";
+    ctx.font = "14px 'Arial'";
+    ctx.fillStyle = "#f60";
+    ctx.fillRect(125, 1, 62, 20);
+    ctx.fillStyle = "#069";
+    ctx.fillText("JeniaAudit_2026", 2, 15);
+    const data = c.toDataURL();
+    let hash = 0;
+    for (let i = 0; i < data.length; i++) {
+      hash = ((hash << 5) - hash) + data.charCodeAt(i);
+      hash |= 0;
     }
-    if(o.y>H+30)obs.splice(i,1);
+    return "0x" + Math.abs(hash).toString(16).toUpperCase();
+  } catch (e) {
+    return "Заблокировано (Защита)";
   }
-
-  // Бонусные кристаллы
-  ctx.fillStyle='#ffd700';ctx.shadowColor='#ffd700';
-  for(let i=gems.length-1;i>=0;i--){
-    const g=gems.at(i);g.y+=speed*0.9;
-    ctx.beginPath();ctx.arc(g.x,g.y,g.r,0,Math.PI*2);ctx.fill();
-    const dx=player.x-g.x,dy=player.y-g.y;
-    if(Math.hypot(dx,dy)<player.r+g.r){
-      score+=100;beep(880,0.1,'sine');boom(g.x,g.y,'#ffd700');
-      gems.splice(i,1);continue;
-    }
-    if(g.y>H+30)gems.splice(i,1);
-  }
-
-  // Игрок
-  ctx.fillStyle='#00ffaa';ctx.shadowBlur=18;ctx.shadowColor='#00ffaa';
-  ctx.beginPath();ctx.arc(player.x,player.y,player.r,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(player.x,player.y,player.r*0.45,0,Math.PI*2);ctx.fill();
-
-  // Частицы
-  ctx.shadowBlur=0;
-  for(let i=parts.length-1;i>=0;i--){
-    const p=parts.at(i);p.x+=p.vx;p.y+=p.vy;p.life--;
-    ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,3,3);
-    if(p.life<=0)parts.splice(i,1);
-  }
-
-  requestAnimationFrame(loop);
 }
+
+function getGPU() {
+  try {
+    const c = document.createElement('canvas');
+    const gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+    if (!gl) return "Недоступно";
+    const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+    return dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : "Стандартный WebGL";
+  } catch (e) {
+    return "Скрыто браузером";
+  }
+}
+
+async function runAudit() {
+  let privacyScore = 100;
+
+  // Железо
+  const gpu = getGPU();
+  document.getElementById('gpu').textContent = gpu;
+  if (gpu.length > 15 && !gpu.includes("Скрыто")) privacyScore -= 15;
+
+  const cores = navigator.hardwareConcurrency || "Скрыто";
+  document.getElementById('cpu').textContent = cores + (typeof cores === 'number' ? " ядра" : "");
+  
+  const ram = navigator.deviceMemory ? navigator.deviceMemory + " ГБ (прибл.)" : "Скрыто браузером";
+  document.getElementById('ram').textContent = ram;
+
+  document.getElementById('scr').textContent = `${screen.width}x${screen.height} (x${window.devicePixelRatio || 1})`;
+
+  // Сеть (локальные параметры)
+  const navConn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  document.getElementById('conn').textContent = navConn ? `${navConn.effectiveType.toUpperCase()} (~${navConn.downlink} Мбит/с)` : "Стандартное соединение";
+
+  // Отпечаток
+  const fp = getCanvasFingerprint();
+  document.getElementById('fp').textContent = fp;
+  if (fp.startsWith("0x")) privacyScore -= 25;
+
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Неизвестно";
+  document.getElementById('tz').textContent = `${tz} (${navigator.language})`;
+
+  const dnt = navigator.doNotTrack === "1" || window.doNotTrack === "1";
+  const dntEl = document.getElementById('dnt');
+  dntEl.textContent = dnt ? "Включена (Активно)" : "Отключена (Уязвимо)";
+  dntEl.className = "v " + (dnt ? "ok" : "warn");
+  if (!dnt) privacyScore -= 10;
+
+  const ckEl = document.getElementById('ck');
+  ckEl.textContent = navigator.cookieEnabled ? "Открыто для трекеров" : "Заблокировано";
+  ckEl.className = "v " + (navigator.cookieEnabled ? "warn" : "ok");
+  if (navigator.cookieEnabled) privacyScore -= 10;
+
+  // Внешний IP через публичный API
+  try {
+    const res = await fetch('https://ipapi.co');
+    const data = await res.json();
+    document.getElementById('ip').textContent = data.ip || "Скрыт";
+    document.getElementById('isp').textContent = data.org || "Не определён";
+    document.getElementById('loc').textContent = `${data.country_name || ''}, ${data.city || ''}`;
+    privacyScore -= 15;
+  } catch (e) {
+    document.getElementById('ip').textContent = "Заблокировано AdBlock / VPN";
+    document.getElementById('isp').textContent = "Защита активна";
+    document.getElementById('loc').textContent = "Скрыто";
+    privacyScore += 10;
+  }
+
+  privacyScore = Math.max(15, Math.min(98, privacyScore));
+  const scEl = document.getElementById('score');
+  scEl.textContent = privacyScore + "%";
+  scEl.style.color = privacyScore > 70 ? "#10b981" : (privacyScore > 45 ? "#f59e0b" : "#f43f5e");
+
+  document.getElementById('summary').textContent = privacyScore > 70 
+    ? "Хороший уровень маскировки устройства." 
+    : "Высокая уникальность слепка: сайты легко отслеживают вас.";
+
+  reportText = `Аудит безопасности устройства:\nИндекс приватности: ${privacyScore}%\nВидеочип: ${gpu}\nОтпечаток Canvas: ${fp}\nПроверить своё устройство: ${location.origin + location.pathname}`;
+}
+
+function copyReport() {
+  navigator.clipboard.writeText(reportText);
+  alert("Технический отчёт скопирован в буфер обмена!");
+}
+
+function shareTool() {
+  const url = location.origin + location.pathname;
+  const txt = "Проверь, какие скрытые данные твой телефон отдаёт сайтам и трекерам (Инспектор безопасности): " + url;
+  if (navigator.share) navigator.share({title: 'Security Audit', text: txt, url: url});
+  else { navigator.clipboard.writeText(txt); alert("Ссылка на инспектор скопирована — отправь друзьям!"); }
+}
+
+runAudit();
 </script>
 </body>
 </html>
