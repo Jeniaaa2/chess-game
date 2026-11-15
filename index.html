@@ -3,195 +3,192 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>SECURITY AUDIT // ИНСПЕКТОР ЦИФРОВОГО СЛЕДА</title>
+<title>ANTIFRAUD AUDIT // JENIA</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#090d16;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,monospace;padding:16px;display:flex;flex-direction:column;align-items:center;min-height:100vh}
-.wrap{width:100%;max-width:540px}
-header{border-bottom:1px solid #1e293b;padding-bottom:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
-h1{font-size:18px;color:#38bdf8;letter-spacing:0.5px}
-.badge{background:rgba(56,189,248,0.15);color:#38bdf8;border:1px solid #38bdf8;padding:4px 8px;border-radius:4px;font-size:11px;font-weight:bold}
-.score-card{background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
-.score-val{font-size:32px;font-weight:bold;color:#f59e0b}
-.score-lbl{font-size:12px;color:#94a3b8;margin-top:4px}
-.sec{background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:14px;margin-bottom:12px}
-.sec-title{font-size:12px;text-transform:uppercase;color:#38bdf8;letter-spacing:1px;margin-bottom:10px;font-weight:bold;border-bottom:1px solid #1e293b;padding-bottom:6px}
-.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #1e293b;font-size:13px;gap:10px}
-.row:last-child{border-bottom:none}
-.k{color:#94a3b8;flex-shrink:0}
-.v{color:#f8fafc;font-weight:600;text-align:right;word-break:break-all}
-.warn{color:#f43f5e}
-.ok{color:#10b981}
-.btns{display:flex;gap:10px;margin-top:14px;margin-bottom:20px}
-button{flex:1;padding:13px;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;background:#0284c7;color:#fff}
-button:active{transform:scale(0.98)}
-button.sec-btn{background:#1e293b;color:#e2e8f0;border:1px solid #334155}
-footer{font-size:11px;color:#64748b;text-align:center;margin-top:auto;padding-top:10px}
+body{background:#060911;color:#e2e8f0;font-family:monospace;padding:12px;display:flex;flex-direction:column;align-items:center}
+.w{width:100%;max-width:520px}
+header{border-bottom:1px solid #1e293b;padding-bottom:10px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+h1{font-size:16px;color:#38bdf8}
+.b{background:#0f291e;color:#10b981;border:1px solid #10b981;padding:3px 7px;border-radius:4px;font-size:10px;font-weight:bold}
+.sc{background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:12px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.sv{font-size:28px;font-weight:bold;color:#f59e0b}
+.sl{font-size:11px;color:#94a3b8;margin-top:3px}
+.fl{background:#290d14;border:1px solid #f43f5e;border-radius:8px;padding:10px;margin-bottom:12px;display:none}
+.ft{color:#f43f5e;font-size:11px;font-weight:bold;margin-bottom:5px}
+.fl ul{padding-left:16px;font-size:11px;color:#fecdd3;line-height:1.4}
+.s{background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:10px 12px;margin-bottom:10px}
+.st{font-size:10px;color:#38bdf8;margin-bottom:6px;font-weight:bold;border-bottom:1px solid #1e293b;padding-bottom:4px}
+.r{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #1e293b;font-size:12px;gap:8px}
+.r:last-child{border:none}
+.k{color:#94a3b8}
+.v{color:#f8fafc;font-weight:bold;text-align:right;word-break:break-all}
+.warn{color:#f43f5e}.ok{color:#10b981}.mid{color:#f59e0b}
+.bs{display:flex;gap:8px;margin-top:10px}
+button{flex:1;padding:12px;border:none;border-radius:6px;font-weight:bold;font-size:13px;cursor:pointer;background:#0284c7;color:#fff}
+button.s2{background:#1e293b;color:#e2e8f0;border:1px solid #334155}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>[ SECURITY AUDIT // JENIA ]</h1>
-    <span class="badge">CLIENT-SIDE ONLY</span>
-  </header>
-
-  <div class="score-card">
-    <div>
-      <div style="font-size:14px;font-weight:bold">ИНДЕКС ПРИВАТНОСТИ УСТРОЙСТВА</div>
-      <div class="score-lbl" id="summary">Выполняется глубокое сканирование...</div>
-    </div>
-    <div class="score-val" id="score">--%</div>
-  </div>
-
-  <div class="sec">
-    <div class="sec-title">1. Сетевая идентификация (IP и Гео)</div>
-    <div class="row"><span class="k">Внешний IP-адрес:</span><span class="v" id="ip">Определение...</span></div>
-    <div class="row"><span class="k">Провайдер / Сеть:</span><span class="v" id="isp">Определение...</span></div>
-    <div class="row"><span class="k">Локация (Страна / Город):</span><span class="v" id="loc">Определение...</span></div>
-    <div class="row"><span class="k">Тип соединения:</span><span class="v" id="conn">Анализ...</span></div>
-  </div>
-
-  <div class="sec">
-    <div class="sec-title">2. Аппаратный профиль (Железо)</div>
-    <div class="row"><span class="k">Видеочип (WebGL):</span><span class="v" id="gpu">Анализ...</span></div>
-    <div class="row"><span class="k">Логических ядер CPU:</span><span class="v" id="cpu">Анализ...</span></div>
-    <div class="row"><span class="k">Оперативная память:</span><span class="v" id="ram">Анализ...</span></div>
-    <div class="row"><span class="k">Экран и плотность:</span><span class="v" id="scr">Анализ...</span></div>
-  </div>
-
-  <div class="sec">
-    <div class="sec-title">3. Цифровой отпечаток и трекинг</div>
-    <div class="row"><span class="k">Canvas Fingerprint ID:</span><span class="v warn" id="fp">Генерация...</span></div>
-    <div class="row"><span class="k">Часовой пояс / Язык:</span><span class="v" id="tz">Анализ...</span></div>
-    <div class="row"><span class="k">Защита Do Not Track:</span><span class="v" id="dnt">Анализ...</span></div>
-    <div class="row"><span class="k">Хранилище Cookie / Local:</span><span class="v" id="ck">Анализ...</span></div>
-  </div>
-
-  <div class="btns">
-    <button onclick="copyReport()">СКОПИРОВАТЬ ОТЧЁТ</button>
-    <button class="sec-btn" onclick="shareTool()">ОТПРАВИТЬ ДРУГУ</button>
-  </div>
-
-  <footer>Аудит выполняется локально в вашем браузере. Данные никуда не передаются.</footer>
+<div class="w">
+<header><h1>[ ANTIFRAUD // JENIA ]</h1><span class="b">DEEP SCAN v2.2</span></header>
+<div class="sc">
+  <div><div style="font-size:13px;font-weight:bold">ИНДЕКС АНОНИМНОСТИ</div><div class="sl" id="sum">Анализ системы...</div></div>
+  <div class="sv" id="scr">--%</div>
 </div>
-
+<div class="fl" id="fb">
+  <div class="ft">ОБНАРУЖЕНЫ НЕСТЫКОВКИ (RED FLAGS):</div>
+  <ul id="flist"></ul>
+</div>
+<div class="s"><div class="st">1. СЕТЬ И УТЕЧКИ WEBRTC</div>
+  <div class="r"><span class="k">Публичный IP:</span><span class="v" id="ip">...</span></div>
+  <div class="r"><span class="k">Утечка WebRTC:</span><span class="v" id="rtc">...</span></div>
+  <div class="r"><span class="k">Провайдер:</span><span class="v" id="isp">...</span></div>
+  <div class="r"><span class="k">Локация IP:</span><span class="v" id="loc">...</span></div>
+</div>
+<div class="s"><div class="st">2. АППАРАТНЫЕ СЛЕПКИ</div>
+  <div class="r"><span class="k">Canvas Hash:</span><span class="v" id="fpc">...</span></div>
+  <div class="r"><span class="k">Шум (Noise):</span><span class="v" id="fpn">...</span></div>
+  <div class="r"><span class="k">Audio DSP Hash:</span><span class="v" id="fpa">...</span></div>
+  <div class="r"><span class="k">Видеочип WebGL:</span><span class="v" id="gpu">...</span></div>
+</div>
+<div class="s"><div class="st">3. СИСТЕМА И ДЕТЕКТОРЫ</div>
+  <div class="r"><span class="k">Часовой пояс:</span><span class="v" id="tz">...</span></div>
+  <div class="r"><span class="k">Языки системы:</span><span class="v" id="lng">...</span></div>
+  <div class="r"><span class="k">CPU / RAM:</span><span class="v" id="hw">...</span></div>
+  <div class="r"><span class="k">Детектор бота:</span><span class="v" id="bot">...</span></div>
+</div>
+<div class="bs">
+  <button onclick="cp()">СКОПИРОВАТЬ ОТЧЁТ</button>
+  <button class="s2" onclick="sh()">ОТПРАВИТЬ ДРУГУ</button>
+</div>
+</div>
 <script>
-let reportText = "";
-
-function getCanvasFingerprint() {
-  try {
-    const c = document.createElement('canvas');
-    const ctx = c.getContext('2d');
-    ctx.textBaseline = "top";
-    ctx.font = "14px 'Arial'";
-    ctx.fillStyle = "#f60";
-    ctx.fillRect(125, 1, 62, 20);
-    ctx.fillStyle = "#069";
-    ctx.fillText("JeniaAudit_2026", 2, 15);
-    const data = c.toDataURL();
-    let hash = 0;
-    for (let i = 0; i < data.length; i++) {
-      hash = ((hash << 5) - hash) + data.charCodeAt(i);
-      hash |= 0;
+let rep="",flags=[];
+function addF(t){
+  flags.push(t);
+  document.getElementById('fb').style.display='block';
+  const li=document.createElement('li');
+  li.textContent=t;
+  document.getElementById('flist').appendChild(li);
+}
+function hsh(s){
+  let h=2166136261;
+  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}
+  return"0x"+(h>>>0).toString(16).toUpperCase().padStart(8,'0');
+}
+function cvs(){
+  const c=document.createElement('canvas');c.width=200;c.height=50;
+  const x=c.getContext('2d');
+  x.fillStyle="#f60";x.fillRect(80,10,50,20);
+  x.fillStyle="#069";x.font="14px Arial";x.fillText("JeniaAudit2026",5,20);
+  return hsh(c.toDataURL());
+}
+async function aud(){
+  try{
+    const A=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+    if(!A)return"Нет";
+    const c=new A(1,44100,44100),o=c.createOscillator(),m=c.createDynamicsCompressor();
+    o.type="triangle";o.frequency.setValueAtTime(10000,0);
+    o.connect(m);m.connect(c.destination);o.start(0);
+    const b=await c.startRendering(),d=b.getChannelData(0);
+    let s=0;for(let i=4500;i<5000;i++)s+=Math.abs(d[i]);
+    return hsh(s.toString());
+  }catch(e){return"Скрыто";}
+}
+function rtc(){
+  return new Promise(r=>{
+    const ips=new Set();
+    try{
+      const p=new RTCPeerConnection({iceServers:[{urls:"stun:://google.com"}]});
+      p.createDataChannel("");
+      p.onicecandidate=e=>{
+        if(!e||!e.candidate){p.close();r(Array.from(ips));return;}
+        const m=e.candidate.candidate.match(/([0-9]{1,3}(\.[0-9]{1,3}){3})/);
+        if(m)ips.add(m.at(1));
+      };
+      p.createOffer().then(o=>p.setLocalDescription(o)).catch(()=>r([]));
+      setTimeout(()=>{try{p.close();}catch(e){}r(Array.from(ips));},2000);
+    }catch(e){r([]);}
+  });
+}
+function gl(){
+  try{
+    const c=document.createElement('canvas'),g=c.getContext('webgl');
+    if(!g)return"Откл";
+    const d=g.getExtension('WEBGL_debug_renderer_info');
+    return d?g.getParameter(d.UNMASKED_RENDERER_WEBGL):"Скрыто";
+  }catch(e){return"Блок";}
+}
+async function run(){
+  let s=100;
+  const h1=cvs(),h2=cvs();
+  document.getElementById('fpc').textContent=h1;
+  const ne=document.getElementById('fpn');
+  if(h1!==h2){
+    ne.textContent="Активен (Шум)";ne.className="v ok";
+    addF("Браузер искажает Canvas шумом (Anti-Detect / Brave).");
+  }else{
+    ne.textContent="Нет (Статичный)";ne.className="v warn";s-=20;
+  }
+  const ah=await aud();
+  document.getElementById('fpa').textContent=ah;
+  if(ah.startsWith("0x"))s-=15;
+  const gp=gl();
+  document.getElementById('gpu').textContent=gp;
+  if(/NVIDIA|AMD|Adreno|Mali|Apple/i.test(gp))s-=15;
+  const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||"Unknown";
+  document.getElementById('tz').textContent=tz;
+  const lg=navigator.languages?navigator.languages.join(','):navigator.language;
+  document.getElementById('lng').textContent=lg;
+  document.getElementById('hw').textContent=(navigator.hardwareConcurrency||"?")+" яд / "+(navigator.deviceMemory||"?")+" ГБ";
+  const bt=navigator.webdriver===true,be=document.getElementById('bot');
+  be.textContent=bt?"БОТ (WebDriver)":"Человек";
+  be.className="v "+(bt?"warn":"ok");
+  if(bt){s-=30;addF("Обнаружен флаг автоматизации WebDriver.");}
+  const ri=await rtc(),re=document.getElementById('rtc');
+  let lip=null;
+  if(!ri.length){
+    re.textContent="Защищено";re.className="v ok";
+  }else{
+    const pub=ri.filter(i=>!i.startsWith("192.168.")&&!i.startsWith("10.")&&!i.startsWith("172."));
+    if(pub.length){
+      lip=pub.at(0);re.textContent="УТЕЧКА: "+lip;re.className="v warn";s-=25;
+      addF("WebRTC раскрывает внешний IP: "+lip);
+    }else{
+      re.textContent="Локальный ("+ri.at(0)+")";re.className="v mid";s-=5;
     }
-    return "0x" + Math.abs(hash).toString(16).toUpperCase();
-  } catch (e) {
-    return "Заблокировано (Защита)";
   }
-}
-
-function getGPU() {
-  try {
-    const c = document.createElement('canvas');
-    const gl = c.getContext('webgl') || c.getContext('experimental-webgl');
-    if (!gl) return "Недоступно";
-    const dbg = gl.getExtension('WEBGL_debug_renderer_info');
-    return dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : "Стандартный WebGL";
-  } catch (e) {
-    return "Скрыто браузером";
+  let hip="Скрыт";
+  try{
+    const rs=await fetch('https://ipapi.co'),dt=await rs.json();
+    hip=dt.ip||"Скрыт";
+    document.getElementById('ip').textContent=hip;
+    document.getElementById('isp').textContent=dt.org||"-";
+    document.getElementById('loc').textContent=(dt.country_name||"")+", "+(dt.city||"");
+    s-=10;
+    if(lip&&hip!=="Скрыт"&&lip!==hip){addF("УТЕЧКА VPN: HTTP через "+hip+", а WebRTC сливает "+lip);s-=20;}
+    if(dt.timezone&&tz!=="Unknown"&&dt.timezone!==tz){addF("Конфликт времени: IP ("+dt.timezone+") != Система ("+tz+")");s-=15;}
+    if(dt.country_code&&!["BY","RU","KZ","UA"].includes(dt.country_code)&&lg.toLowerCase().includes("ru")){addF("Языковой конфликт: IP ("+dt.country_code+") при русском языке ("+lg+")");s-=10;}
+  }catch(e){
+    document.getElementById('ip').textContent="Скрыт фильтром";
+    document.getElementById('isp').textContent="Заблокировано";
+    document.getElementById('loc').textContent="Скрыто";
   }
+  s=Math.max(10,Math.min(99,s));
+  const se=document.getElementById('scr');
+  se.textContent=s+"%";
+  se.style.color=s>=75?"#10b981":(s>=45?"#f59e0b":"#f43f5e");
+  document.getElementById('sum').textContent=flags.length?"Найдено нестыковок: "+flags.length:"Аномалий не обнаружено.";
+  rep="ANTIFRAUD AUDIT:\nАнонимность: "+s+"%\nIP: "+hip+" | WebRTC: "+re.textContent+"\nCanvas: "+h1+" | Audio: "+ah+"\nНестыковок: "+flags.length+"\nПроверить себя: "+location.origin+location.pathname;
 }
-
-async function runAudit() {
-  let privacyScore = 100;
-
-  // Железо
-  const gpu = getGPU();
-  document.getElementById('gpu').textContent = gpu;
-  if (gpu.length > 15 && !gpu.includes("Скрыто")) privacyScore -= 15;
-
-  const cores = navigator.hardwareConcurrency || "Скрыто";
-  document.getElementById('cpu').textContent = cores + (typeof cores === 'number' ? " ядра" : "");
-  
-  const ram = navigator.deviceMemory ? navigator.deviceMemory + " ГБ (прибл.)" : "Скрыто браузером";
-  document.getElementById('ram').textContent = ram;
-
-  document.getElementById('scr').textContent = `${screen.width}x${screen.height} (x${window.devicePixelRatio || 1})`;
-
-  // Сеть (локальные параметры)
-  const navConn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  document.getElementById('conn').textContent = navConn ? `${navConn.effectiveType.toUpperCase()} (~${navConn.downlink} Мбит/с)` : "Стандартное соединение";
-
-  // Отпечаток
-  const fp = getCanvasFingerprint();
-  document.getElementById('fp').textContent = fp;
-  if (fp.startsWith("0x")) privacyScore -= 25;
-
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Неизвестно";
-  document.getElementById('tz').textContent = `${tz} (${navigator.language})`;
-
-  const dnt = navigator.doNotTrack === "1" || window.doNotTrack === "1";
-  const dntEl = document.getElementById('dnt');
-  dntEl.textContent = dnt ? "Включена (Активно)" : "Отключена (Уязвимо)";
-  dntEl.className = "v " + (dnt ? "ok" : "warn");
-  if (!dnt) privacyScore -= 10;
-
-  const ckEl = document.getElementById('ck');
-  ckEl.textContent = navigator.cookieEnabled ? "Открыто для трекеров" : "Заблокировано";
-  ckEl.className = "v " + (navigator.cookieEnabled ? "warn" : "ok");
-  if (navigator.cookieEnabled) privacyScore -= 10;
-
-  // Внешний IP через публичный API
-  try {
-    const res = await fetch('https://ipapi.co');
-    const data = await res.json();
-    document.getElementById('ip').textContent = data.ip || "Скрыт";
-    document.getElementById('isp').textContent = data.org || "Не определён";
-    document.getElementById('loc').textContent = `${data.country_name || ''}, ${data.city || ''}`;
-    privacyScore -= 15;
-  } catch (e) {
-    document.getElementById('ip').textContent = "Заблокировано AdBlock / VPN";
-    document.getElementById('isp').textContent = "Защита активна";
-    document.getElementById('loc').textContent = "Скрыто";
-    privacyScore += 10;
-  }
-
-  privacyScore = Math.max(15, Math.min(98, privacyScore));
-  const scEl = document.getElementById('score');
-  scEl.textContent = privacyScore + "%";
-  scEl.style.color = privacyScore > 70 ? "#10b981" : (privacyScore > 45 ? "#f59e0b" : "#f43f5e");
-
-  document.getElementById('summary').textContent = privacyScore > 70 
-    ? "Хороший уровень маскировки устройства." 
-    : "Высокая уникальность слепка: сайты легко отслеживают вас.";
-
-  reportText = `Аудит безопасности устройства:\nИндекс приватности: ${privacyScore}%\nВидеочип: ${gpu}\nОтпечаток Canvas: ${fp}\nПроверить своё устройство: ${location.origin + location.pathname}`;
+function cp(){navigator.clipboard.writeText(rep);alert("Отчёт скопирован!");}
+function sh(){
+  const u=location.origin+location.pathname;
+  if(navigator.share)navigator.share({title:'Antifraud Audit',url:u});
+  else{navigator.clipboard.writeText(u);alert("Ссылка скопирована!");}
 }
-
-function copyReport() {
-  navigator.clipboard.writeText(reportText);
-  alert("Технический отчёт скопирован в буфер обмена!");
-}
-
-function shareTool() {
-  const url = location.origin + location.pathname;
-  const txt = "Проверь, какие скрытые данные твой телефон отдаёт сайтам и трекерам (Инспектор безопасности): " + url;
-  if (navigator.share) navigator.share({title: 'Security Audit', text: txt, url: url});
-  else { navigator.clipboard.writeText(txt); alert("Ссылка на инспектор скопирована — отправь друзьям!"); }
-}
-
-runAudit();
+run();
 </script>
 </body>
 </html>
