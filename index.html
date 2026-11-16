@@ -1,135 +1,167 @@
-DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>ISS LIVE TRACKER // JENIA ORBITAL</title>
+<title>NEON SYNTH CHESS // JENIA</title>
+<script src="https://cloudflare.com"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#050810;color:#e2e8f0;font-family:monospace;padding:12px;display:flex;flex-direction:column;align-items:center;min-height:100vh}
-.w{width:100%;max-width:500px;background:#0b111e;border:1px solid #1e293b;border-radius:8px;padding:14px;box-shadow:0 0 25px rgba(0,0,0,0.6)}
-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e293b;padding-bottom:10px;margin-bottom:12px}
-h1{font-size:15px;color:#38bdf8}
-.live{background:rgba(16,185,129,0.15);color:#10b981;border:1px solid #10b981;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:bold}
-canvas{width:100%;height:190px;background:#03060c;border:1px solid #1e293b;border-radius:6px;display:block;margin-bottom:12px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-.box{background:#0f172a;border:1px solid #1e293b;padding:9px;border-radius:6px}
-.lbl{font-size:10px;color:#94a3b8;margin-bottom:3px;text-transform:uppercase}
-.val{font-size:14px;font-weight:bold;color:#f8fafc}
-.hi{color:#38bdf8}
-.bar{background:#0f172a;border:1px solid #1e293b;padding:10px;border-radius:6px;font-size:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.btns{display:flex;gap:8px}
+body{background:#04070d;color:#e2e8f0;font-family:monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;user-select:none}
+.w{width:100%;max-width:420px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:8px 10px;background:#0b1220;border:1px solid #1e293b;border-radius:8px}
+h1{font-size:14px;color:#38bdf8;text-shadow:0 0 8px rgba(56,189,248,0.5)}
+#st{font-size:12px;color:#10b981;font-weight:bold}
+.board{display:grid;grid-template-columns:repeat(8,1fr);width:100%;aspect-ratio:1/1;border:2px solid #38bdf8;border-radius:6px;overflow:hidden;box-shadow:0 0 25px rgba(56,189,248,0.25)}
+.sq{display:flex;align-items:center;justify-content:center;font-size:8.5vw;cursor:pointer;position:relative;transition:background 0.2s}
+@media(min-width:440px){.sq{font-size:38px}}
+.l{background:#132038}.d{background:#09101d}
+.sel{background:rgba(56,189,248,0.45)!important}
+.last{box-shadow:inset 0 0 12px rgba(245,158,11,0.7)}
+.hint::after{content:"";width:28%;height:28%;background:rgba(16,185,129,0.75);border-radius:50%;box-shadow:0 0 8px #10b981}
+.pw{color:#f8fafc;text-shadow:0 0 8px #38bdf8,0 2px 2px #000}
+.pb{color:#fbbf24;text-shadow:0 0 8px #f59e0b,0 2px 2px #000}
+.btns{display:flex;gap:8px;margin-top:10px}
 button{flex:1;padding:12px 6px;border:none;border-radius:6px;font-family:monospace;font-weight:bold;font-size:12px;cursor:pointer;background:#0284c7;color:#fff}
-button:active{transform:scale(0.98)}
+button:active{transform:scale(0.97)}
 button.s2{background:#1e293b;color:#e2e8f0;border:1px solid #334155}
 </style>
 </head>
 <body>
 <div class="w">
-  <header><h1>[ ISS TELEMETRY // JENIA ]</h1><span class="live" id="st">SYNC...</span></header>
-  <canvas id="map"></canvas>
-  <div class="grid">
-    <div class="box"><div class="lbl">Широта / Долгота</div><div class="val hi" id="crd">Расчёт...</div></div>
-    <div class="box"><div class="lbl">Высота орбиты</div><div class="val" id="alt">...</div></div>
-    <div class="box"><div class="lbl">Скорость МКС</div><div class="val" id="spd">...</div></div>
-    <div class="box"><div class="lbl">Освещённость</div><div class="val" id="vis">...</div></div>
-  </div>
-  <div class="bar">
-    <span id="locLabel">До МКС от экватора (0°, 0°):</span>
-    <b class="hi" id="dist">Расчёт...</b>
-  </div>
+  <header><h1>[ NEON CHESS // JENIA ]</h1><span id="st">Твой ход (Белые)</span></header>
+  <div class="board" id="brd"></div>
   <div class="btns">
-    <button onclick="myGeo()">МОЯ ГЕОПОЗИЦИЯ</button>
-    <button class="s2" onclick="shareLink()">ОТПРАВИТЬ В ЧАТ</button>
+    <button onclick="resetGame('w')">ИГРАТЬ БЕЛЫМИ</button>
+    <button class="s2" onclick="resetGame('b')">ИГРАТЬ ЧЁРНЫМИ</button>
   </div>
 </div>
 <script>
-let uLat=0,uLon=0,trail=[];
-const cvs=document.getElementById('map'),ctx=cvs.getContext('2d');
+const game=new Chess(),P={p:'♟',r:'♜',n:'♞',b:'♝',q:'♛',k:'♚',P:'♙',R:'♖',N:'♘',B:'♗',Q:'♕',K:'♔'};
+const VAL={p:100,n:320,b:330,r:500,q:900,k:20000};
+const PST={
+  p:[0,0,0,0,0,0,0,0,50,50,50,50,50,50,50,50,10,10,20,30,30,20,10,10,5,5,10,25,25,10,5,5,0,0,0,20,20,0,0,0,5,-5,-10,0,0,-10,-5,5,5,10,10,-20,-20,10,10,5,0,0,0,0,0,0,0,0],
+  n:[-50,-40,-30,-30,-30,-30,-40,-50,-40,-20,0,0,0,0,-20,-40,-30,0,10,15,15,10,0,-30,-30,5,15,20,20,15,5,-30,-30,0,15,20,20,15,0,-30,-30,5,10,15,15,10,5,-30,-40,-20,0,5,5,0,-20,-40,-50,-40,-30,-30,-30,-30,-40,-50],
+  b:[-20,-10,-10,-10,-10,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,5,10,10,5,0,-10,-10,5,5,10,10,5,5,-10,-10,0,10,10,10,10,0,-10,-10,10,10,10,10,10,10,-10,-10,5,0,0,0,0,5,-10,-20,-10,-10,-10,-10,-10,-10,-20],
+  r:[0,0,0,0,0,0,0,0,5,10,10,10,10,10,10,5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,0,0,0,5,5,0,0,0],
+  q:[-20,-10,-10,-5,-5,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,5,5,5,5,0,-10,-5,0,5,5,5,5,0,-5,0,0,5,5,5,5,0,-5,-10,5,5,5,5,5,0,-10,-10,0,5,0,0,0,0,-10,-20,-10,-10,-5,-5,-10,-10,-20],
+  k:[-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-20,-30,-30,-40,-40,-30,-30,-20,-10,-20,-20,-20,-20,-20,-20,-10,20,20,0,0,0,0,20,20,20,30,10,0,0,10,30,20]
+};
+let sel=null,pCol='w',lastMv=null,actx=null;
 
-function calcDist(lat1,lon1,lat2,lon2){
-  const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;
-  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-  return Math.round(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));
-}
-
-function drawMap(lat,lon){
-  const w=cvs.width=cvs.offsetWidth,h=cvs.height=190;
-  ctx.clearRect(0,0,w,h);
-  ctx.strokeStyle='#131c31';ctx.lineWidth=1;
-  for(let i=1;i<6;i++){ctx.beginPath();ctx.moveTo(w*i/6,0);ctx.lineTo(w*i/6,h);ctx.stroke();}
-  for(let i=1;i<4;i++){ctx.beginPath();ctx.moveTo(0,h*i/4);ctx.lineTo(w,h*i/4);ctx.stroke();}
-  ctx.strokeStyle='#1e3a5f';ctx.beginPath();ctx.moveTo(0,h/2);ctx.lineTo(w,h/2);ctx.stroke();
-
-  const ux=(uLon+180)/360*w,uy=(90-uLat)/180*h;
-  ctx.fillStyle='#10b981';ctx.beginPath();ctx.arc(ux,uy,3.5,0,Math.PI*2);ctx.fill();
-
-  trail.push({x:(lon+180)/360*w,y:(90-lat)/180*h});
-  if(trail.length>45)trail.shift();
-  ctx.strokeStyle='rgba(56,189,248,0.5)';ctx.lineWidth=2;ctx.beginPath();
-  trail.forEach((p,i)=>{if(i===0)ctx.moveTo(p.x,p.y);else if(Math.abs(p.x-trail.at(i-1).x)<w/2)ctx.lineTo(p.x,p.y);else ctx.moveTo(p.x,p.y);});
-  ctx.stroke();
-
-  const sx=(lon+180)/360*w,sy=(90-lat)/180*h;
-  ctx.fillStyle='#f59e0b';ctx.beginPath();ctx.arc(sx,sy,5,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle='rgba(245,158,11,0.5)';ctx.beginPath();ctx.arc(sx,sy,11,0,Math.PI*2);ctx.stroke();
-}
-
-function calcOrbitalFallback(){
-  const now=Date.now()/1000;
-  const period=5574;
-  const phase=(now%period)/period*Math.PI*2;
-  const lat=51.64*Math.sin(phase);
-  let lon=((now/240)+(phase*180/Math.PI))%360;
-  if(lon>180)lon-=360;
-  const sunLon=-((now%86400)/86400*360-180);
-  const diff=Math.abs(lon-sunLon);
-  const isDay=diff<95||diff>265;
-  return{lat,lon,alt:418.2+Math.sin(phase)*2.4,spd:27580,vis:isDay?'Дневная зона':'Тень Земли'};
-}
-
-function updateUI(lat,lon,alt,spd,vis,mode){
-  document.getElementById('crd').textContent=`${lat.toFixed(2)}°, ${lon.toFixed(2)}°`;
-  document.getElementById('alt').textContent=`${alt.toFixed(1)} км`;
-  document.getElementById('spd').textContent=`${Math.round(spd)} км/ч`;
-  document.getElementById('vis').textContent=vis;
-  document.getElementById('dist').textContent=calcDist(uLat,uLon,lat,lon).toLocaleString('ru-RU')+' км';
-  const st=document.getElementById('st');
-  st.textContent=mode;
-  st.style.color=mode==='LIVE API'?'#10b981':'#38bdf8';
-  drawMap(lat,lon);
-}
-
-async function fetchISS(){
+function tone(type,cap){
   try{
-    const res=await fetch('https://wheretheiss.at',{cache:'no-store'});
-    if(!res.ok)throw new Error();
-    const d=await res.json();
-    updateUI(d.latitude,d.longitude,d.altitude,d.velocity,d.visibility==='daylight'?'Дневная зона':'Тень Земли','LIVE API');
-  }catch(e){
-    const fb=calcOrbitalFallback();
-    updateUI(fb.lat,fb.lon,fb.alt,fb.spd,fb.vis,'ORBITAL CALC');
+    if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();
+    const notes={p:261.6,n:329.6,b:392.0,r:440.0,q:523.3,k:587.3};
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type=cap?'sawtooth':'sine';
+    o.frequency.value=(notes[type]||330)*(cap?1.25:1);
+    g.gain.setValueAtTime(0.09,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+0.25);
+    o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+0.25);
+  }catch(e){}
+}
+
+function evalBoard(){
+  let total=0;const b=game.board();
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const pc=b[r][c];if(!pc)continue;
+    const idx=pc.color==='w'?r*8+c:(7-r)*8+c;
+    const v=VAL[pc.type]+(PST[pc.type][idx]||0);
+    total+=pc.color==='w'?v:-v;
+  }
+  return total;
+}
+
+function minimax(depth,alpha,beta,isMax){
+  if(depth===0||game.game_over())return evalBoard();
+  const mvs=game.moves({verbose:true});
+  mvs.sort((a,b)=>(b.captured?10:0)-(a.captured?10:0));
+  if(isMax){
+    let best=-99999;
+    for(const m of mvs){
+      game.move(m);best=Math.max(best,minimax(depth-1,alpha,beta,false));game.undo();
+      alpha=Math.max(alpha,best);if(beta<=alpha)break;
+    }
+    return best;
+  }else{
+    let best=99999;
+    for(const m of mvs){
+      game.move(m);best=Math.min(best,minimax(depth-1,alpha,beta,true));game.undo();
+      beta=Math.min(beta,best);if(beta<=alpha)break;
+    }
+    return best;
   }
 }
 
-function myGeo(){
-  if(!navigator.geolocation){alert('Геолокация не поддерживается');return;}
-  document.getElementById('locLabel').textContent='Поиск координат...';
-  navigator.geolocation.getCurrentPosition(pos=>{
-    uLat=pos.coords.latitude;uLon=pos.coords.longitude;
-    document.getElementById('locLabel').textContent='До МКС от вас:';
-    fetchISS();
-  },()=>{alert('Доступ к GPS запрещён браузером');document.getElementById('locLabel').textContent='До МКС от экватора (0°, 0°):';});
+function aiMove(){
+  if(game.game_over())return;
+  const mvs=game.moves({verbose:true});
+  let bestMv=null,bestVal=pCol==='w'?99999:-99999;
+  for(const m of mvs){
+    game.move(m);
+    const v=minimax(2,-99999,99999,pCol==='w');
+    game.undo();
+    if((pCol==='w'&&v<bestVal)||(pCol==='b'&&v>bestVal)){bestVal=v;bestMv=m;}
+  }
+  if(bestMv){
+    const res=game.move(bestMv);
+    lastMv=[res.from,res.to];
+    tone(res.piece,res.captured);
+    render();
+  }
 }
 
-function shareLink(){
-  const u=location.origin+location.pathname+'?t='+Date.now();
-  if(navigator.share)navigator.share({title:'ISS Live Tracker',url:u});
-  else{navigator.clipboard.writeText(u);alert('Ссылка на радар МКС скопирована!');}
+function onSq(sq){
+  if(game.game_over()||game.turn()!==pCol)return;
+  if(sel){
+    const mv=game.move({from:sel,to:sq,promotion:'q'});
+    if(mv){
+      sel=null;lastMv=[mv.from,mv.to];tone(mv.piece,mv.captured);render();
+      if(!game.game_over()){
+        document.getElementById('st').textContent='ИИ думает...';
+        setTimeout(aiMove,180);
+      }
+      return;
+    }
+  }
+  const pc=game.get(sq);
+  sel=(pc&&pc.color===pCol)?sq:null;
+  render();
 }
 
-fetchISS();
-setInterval(fetchISS,3000);
+function render(){
+  const el=document.getElementById('brd');el.innerHTML='';
+  const hints=sel?game.moves({square:sel,verbose:true}).map(m=>m.to):[];
+  const rows=pCol==='w'?[0,1,2,3,4,5,6,7]:[7,6,5,4,3,2,1,0];
+  const cols=pCol==='w'?[0,1,2,3,4,5,6,7]:[7,6,5,4,3,2,1,0];
+  for(const r of rows)for(const c of cols){
+    const sq=String.fromCharCode(97+c)+(8-r);
+    const d=document.createElement('div');
+    d.className='sq '+((r+c)%2===0?'l':'d');
+    if(sq===sel)d.classList.add('sel');
+    if(lastMv&&lastMv.includes(sq))d.classList.add('last');
+    if(hints.includes(sq))d.classList.add('hint');
+    const pc=game.get(sq);
+    if(pc){
+      const key=pc.color==='w'?pc.type.toUpperCase():pc.type;
+      d.innerHTML=`<span class="${pc.color==='w'?'pw':'pb'}">${P[key]}</span>`;
+    }
+    d.onclick=()=>onSq(sq);
+    el.appendChild(d);
+  }
+  const st=document.getElementById('st');
+  if(game.in_checkmate())st.textContent='МАТ! Партия окончена';
+  else if(game.in_draw())st.textContent='НИЧЬЯ!';
+  else if(game.in_check())st.textContent='ШАХ! Твой ход';
+  else st.textContent=game.turn()===pCol?'Твой ход':'Ход ИИ...';
+}
+
+function resetGame(col){
+  pCol=col;game.reset();sel=null;lastMv=null;render();
+  if(pCol==='b')setTimeout(aiMove,300);
+}
+render();
 </script>
 </body>
 </html>
