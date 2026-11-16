@@ -3,167 +3,53 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>NEON SYNTH CHESS // JENIA</title>
-<script src="https://cloudflare.com"></script>
+<title>NEON CHESS // JENIA</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#04070d;color:#e2e8f0;font-family:monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;user-select:none}
 .w{width:100%;max-width:420px}
 header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:8px 10px;background:#0b1220;border:1px solid #1e293b;border-radius:8px}
-h1{font-size:14px;color:#38bdf8;text-shadow:0 0 8px rgba(56,189,248,0.5)}
-#st{font-size:12px;color:#10b981;font-weight:bold}
-.board{display:grid;grid-template-columns:repeat(8,1fr);width:100%;aspect-ratio:1/1;border:2px solid #38bdf8;border-radius:6px;overflow:hidden;box-shadow:0 0 25px rgba(56,189,248,0.25);background:#09101d}
+h1{font-size:14px;color:#38bdf8}.st{font-size:12px;color:#10b981;font-weight:700}
+.b{display:grid;grid-template-columns:repeat(8,1fr);width:100%;aspect-ratio:1/1;border:2px solid #38bdf8;border-radius:6px;overflow:hidden;background:#09101d}
 .sq{display:flex;align-items:center;justify-content:center;font-size:8.5vw;cursor:pointer;position:relative}
 @media(min-width:440px){.sq{font-size:38px}}
-.l{background:#152542}.d{background:#09101d}
-.sel{background:rgba(56,189,248,0.45)!important}
-.last{box-shadow:inset 0 0 12px rgba(245,158,11,0.8)}
-.hint::after{content:"";width:28%;height:28%;background:rgba(16,185,129,0.8);border-radius:50%;box-shadow:0 0 8px #10b981}
-.pw{color:#ffffff;text-shadow:0 0 10px #38bdf8,0 2px 2px #000}
-.pb{color:#fbbf24;text-shadow:0 0 10px #f59e0b,0 2px 2px #000}
+.l{background:#152542}.d{background:#09101d}.sel{background:rgba(56,189,248,0.45)!important}
+.hint::after{content:"";width:28%;height:28%;background:#10b981;border-radius:50%;box-shadow:0 0 8px #10b981}
+.pw{color:#fff;text-shadow:0 0 10px #38bdf8,0 2px 2px #000}.pb{color:#fbbf24;text-shadow:0 0 10px #f59e0b,0 2px 2px #000}
 .btns{display:flex;gap:8px;margin-top:10px}
-button{flex:1;padding:12px 6px;border:none;border-radius:6px;font-family:monospace;font-weight:bold;font-size:12px;cursor:pointer;background:#0284c7;color:#fff}
-button:active{transform:scale(0.97)}
+button{flex:1;padding:12px 6px;border:none;border-radius:6px;font-family:monospace;font-weight:700;font-size:12px;cursor:pointer;background:#0284c7;color:#fff}
 button.s2{background:#1e293b;color:#e2e8f0;border:1px solid #334155}
 </style>
 </head>
 <body>
 <div class="w">
-  <header><h1>[ NEON CHESS // JENIA ]</h1><span id="st">Загрузка...</span></header>
-  <div class="board" id="brd"></div>
-  <div class="btns">
-    <button onclick="resetGame('w')">ИГРАТЬ БЕЛЫМИ</button>
-    <button class="s2" onclick="resetGame('b')">ИГРАТЬ ЧЁРНЫМИ</button>
-  </div>
-</div>
-<script>
-const P={p:'♟',r:'♜',n:'♞',b:'♝',q:'♛',k:'♚',P:'♙',R:'♖',N:'♘',B:'♗',Q:'♕',K:'♔'};
-const VAL={p:100,n:320,b:330,r:500,q:900,k:20000};
-let game=null,sel=null,pCol='w',lastFrom=null,lastTo=null,actx=null;
-
-function tone(type,cap){
-  try{
-    if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();
-    const notes={p:261.6,n:329.6,b:392.0,r:440.0,q:523.3,k:587.3};
-    const o=actx.createOscillator(),g=actx.createGain();
-    o.type=cap?'sawtooth':'sine';
-    o.frequency.value=(notes[type]||330)*(cap?1.25:1);
-    g.gain.setValueAtTime(0.09,actx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+0.25);
-    o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+0.25);
-  }catch(e){}
+  <header><h1>[ NEON CHESS // JENIA ]</h1><span class="st" id="st">Твой ход</span></header>
+  <div class="b" id="brd"></div>
+  <div class="btns"><button onclick="init('w')">БЕЛЫМИ</button><button class="s2" onclick="init('b')">ЧЁРНЫМИ</button></div>
+</div><script>
+const U={P:'♙',R:'♖',N:'♘',B:'♗',Q:'♕',K:'♔',p:'♟',r:'♜',n:'♞',b:'♝',q:'♛',k:'♚'};
+const V={p:10,n:32,b:33,r:50,q:90,k:900};
+let bd=[],turn='w',pCol='w',sel=null,actx=null;
+const isW=p=>p&&p===p.toUpperCase(),inB=(r,c)=>r>=0&&r<8&&c>=0&&c<8;
+function tone(f){try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;g.gain.setValueAtTime(0.08,actx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+0.2);o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+0.2);}catch(e){}}
+function mvs(b,r,c){
+  const p=b.at(r).at(c);if(!p)return[];const w=isW(p),t=p.toLowerCase(),res=[];
+  const add=(nr,nc)=>{if(!inB(nr,nc))return false;const tg=b.at(nr).at(nc);if(!tg){res.push({fr:r,fc:c,tr:nr,tc:nc});return true;}if(isW(tg)!==w)res.push({fr:r,fc:c,tr:nr,tc:nc});return false;};
+  if(t==='p'){const d=w?-1:1;if(inB(r+d,c)&&!b.at(r+d).at(c)){add(r+d,c);if((w&&r===6||!w&&r===1)&&!b.at(r+2*d).at(c))add(r+2*d,c);}[-1,1].forEach(dc=>{if(inB(r+d,c+dc)&&b.at(r+d).at(c+dc)&&isW(b.at(r+d).at(c+dc))!==w)add(r+d,c+dc);});}
+  if(t==='n')[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(d=>add(r+d[0],c+d[1]));
+  if(t==='k'){for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++)if(dr||dc)add(r+dr,c+dc);if(w&&r===7&&c===4&&!b[7][5]&&!b[7][6]&&b[7][7]==='R')res.push({fr:7,fc:4,tr:7,tc:6,cs:1});if(!w&&r===0&&c===4&&!b[0][5]&&!b[0][6]&&b[0][7]==='r')res.push({fr:0,fc:4,tr:0,tc:6,cs:1});}
+  if('rbq'.includes(t)){const dirs=[];if('rq'.includes(t))dirs.push([-1,0],[1,0],[0,-1],[0,1]);if('bq'.includes(t))dirs.push([-1,-1],[-1,1],[1,-1],[1,1]);dirs.forEach(d=>{let nr=r+d[0],nc=c+d[1];while(add(nr,nc)){nr+=d[0];nc+=d[1];}});}
+  return res;
 }
-
-function evalBoard(){
-  let total=0;const b=game.board();
-  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
-    const pc=b.at(r).at(c);if(!pc)continue;
-    let bonus=(3.5-Math.abs(3.5-r))+(3.5-Math.abs(3.5-c));
-    const v=VAL[pc.type]+bonus*4;
-    total+=pc.color==='w'?v:-v;
-  }
-  return total;
-}
-
-function minimax(depth,alpha,beta,isMax){
-  if(depth===0||game.game_over())return evalBoard();
-  const mvs=game.moves({verbose:true});
-  mvs.sort((a,b)=>(b.captured?10:0)-(a.captured?10:0));
-  if(isMax){
-    let best=-99999;
-    for(const m of mvs){
-      game.move(m);best=Math.max(best,minimax(depth-1,alpha,beta,false));game.undo();
-      alpha=Math.max(alpha,best);if(beta<=alpha)break;
-    }
-    return best;
-  }else{
-    let best=99999;
-    for(const m of mvs){
-      game.move(m);best=Math.min(best,minimax(depth-1,alpha,beta,true));game.undo();
-      beta=Math.min(beta,best);if(beta<=alpha)break;
-    }
-    return best;
-  }
-}
-
-function aiMove(){
-  if(game.game_over())return;
-  const mvs=game.moves({verbose:true});
-  let bestMv=null,bestVal=pCol==='w'?99999:-99999;
-  for(const m of mvs){
-    game.move(m);
-    const v=minimax(2,-99999,99999,pCol==='w');
-    game.undo();
-    if((pCol==='w'&&v<bestVal)||(pCol==='b'&&v>bestVal)){bestVal=v;bestMv=m;}
-  }
-  if(bestMv){
-    const res=game.move(bestMv);
-    lastFrom=res.from;lastTo=res.to;
-    tone(res.piece,res.captured);
-    render();
-  }
-}
-
-function onSq(sq){
-  if(game.game_over()||game.turn()!==pCol)return;
-  if(sel){
-    const mv=game.move({from:sel,to:sq,promotion:'q'});
-    if(mv){
-      sel=null;lastFrom=mv.from;lastTo=mv.to;tone(mv.piece,mv.captured);render();
-      if(!game.game_over()){
-        document.getElementById('st').textContent='ИИ думает...';
-        setTimeout(aiMove,180);
-      }
-      return;
-    }
-  }
-  const pc=game.get(sq);
-  sel=(pc&&pc.color===pCol)?sq:null;
-  render();
-}
-
-function render(){
-  const el=document.getElementById('brd');el.innerHTML='';
-  const hints=sel?game.moves({square:sel,verbose:true}).map(m=>m.to):[];
-  for(let i=0;i<8;i++){
-    const r=pCol==='w'?i:7-i;
-    for(let j=0;j<8;j++){
-      const c=pCol==='w'?j:7-j;
-      const sq=String.fromCharCode(97+c)+(8-r);
-      const d=document.createElement('div');
-      d.className='sq '+((r+c)%2===0?'l':'d');
-      if(sq===sel)d.classList.add('sel');
-      if(sq===lastFrom||sq===lastTo)d.classList.add('last');
-      if(hints.includes(sq))d.classList.add('hint');
-      const pc=game.get(sq);
-      if(pc){
-        const key=pc.color==='w'?pc.type.toUpperCase():pc.type;
-        d.innerHTML=`<span class="${pc.color==='w'?'pw':'pb'}">${P[key]}</span>`;
-      }
-      d.onclick=()=>onSq(sq);
-      el.appendChild(d);
-    }
-  }
-  const st=document.getElementById('st');
-  if(game.in_checkmate())st.textContent='МАТ! Партия окончена';
-  else if(game.in_draw())st.textContent='НИЧЬЯ!';
-  else if(game.in_check())st.textContent='ШАХ! Твой ход';
-  else st.textContent=game.turn()===pCol?'Твой ход':'Ход ИИ...';
-}
-
-function resetGame(col){
-  pCol=col;game.reset();sel=null;lastFrom=null;lastTo=null;render();
-  if(pCol==='b')setTimeout(aiMove,300);
-}
-
-window.addEventListener('load',()=>{
-  if(typeof Chess==='undefined'){
-    document.getElementById('st').textContent='Отключи блокировку CDN в Brave!';
-    return;
-  }
-  game=new Chess();
-  render();
-});
+function doMv(b,m){const nb=b.map(row=>row.slice()),p=nb[m.fr][m.fc];nb[m.tr][m.tc]=p;nb[m.fr][m.fc]='';if(p==='P'&&m.tr===0)nb[m.tr][m.tc]='Q';if(p==='p'&&m.tr===7)nb[m.tr][m.tc]='q';if(m.cs){nb[m.fr][5]=nb[m.fr][7];nb[m.fr][7]='';}return nb;}
+function allMvs(b,col){let a=[];for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(b[r][c]&&isW(b[r][c])===(col==='w'))a=a.concat(mvs(b,r,c));return a;}
+function ev(b){let s=0;for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=b[r][c];if(p){const v=V[p.toLowerCase()]+(3.5-Math.abs(3.5-c))*0.4;s+=isW(p)?v:-v;}}return s;}
+function mm(b,d,al,bt,mx){if(!d)return ev(b);const ms=allMvs(b,mx?'w':'b');if(!ms.length)return mx?-9999:9999;if(mx){let v=-99999;for(const m of ms){v=Math.max(v,mm(doMv(b,m),d-1,al,bt,0));al=Math.max(al,v);if(bt<=al)break;}return v;}else{let v=99999;for(const m of ms){v=Math.min(v,mm(doMv(b,m),d-1,al,bt,1));bt=Math.min(bt,v);if(bt<=al)break;}return v;}}
+function ai(){const ms=allMvs(bd,turn);if(!ms.length){document.getElementById('st').textContent='МАТ / ПАТ!';return;}let bm=ms[0],bv=turn==='w'?-99999:99999;for(const m of ms){const v=mm(doMv(bd,m),2,-99999,99999,turn==='b');if((turn==='w'&&v>bv)||(turn==='b'&&v<bv)){bv=v;bm=m;}}bd=doMv(bd,bm);turn=turn==='w'?'b':'w';tone(320);draw();}
+function tap(r,c){if(turn!==pCol)return;if(sel){const ms=mvs(bd,sel[0],sel[1]),f=ms.find(m=>m.tr===r&&m.tc===c);if(f){bd=doMv(bd,f);sel=null;turn=turn==='w'?'b':'w';tone(440);draw();setTimeout(ai,150);return;}}const p=bd[r][c];sel=(p&&isW(p)===(pCol==='w'))?[r,c]:null;draw();}
+function draw(){const el=document.getElementById('brd');el.innerHTML='';const hs=sel?mvs(bd,sel[0],sel[1]):[];for(let i=0;i<8;i++){const r=pCol==='w'?i:7-i;for(let j=0;j<8;j++){const c=pCol==='w'?j:7-j,d=document.createElement('div');d.className='sq '+((r+c)%2===0?'l':'d');if(sel&&sel[0]===r&&sel[1]===c)d.classList.add('sel');if(hs.some(m=>m.tr===r&&m.tc===c))d.classList.add('hint');const p=bd[r][c];if(p)d.innerHTML=`<span class="${isW(p)?'pw':'pb'}">${U[p]}</span>`;d.onclick=()=>tap(r,c);el.appendChild(d);}}document.getElementById('st').textContent=turn===pCol?'Твой ход':'Ход ИИ...';}
+function init(c){pCol=c;turn='w';sel=null;bd=[['r','n','b','q','k','b','n','r'],['p','p','p','p','p','p','p','p'],['','','','','','','',''],['','','','','','','',''],['','','','','','','',''],['','','','','','','',''],['P','P','P','P','P','P','P','P'],['R','N','B','Q','K','B','N','R']];draw();if(pCol==='b')setTimeout(ai,200);}
+init('w');
 </script>
 </body>
 </html>
