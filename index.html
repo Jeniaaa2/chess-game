@@ -1,80 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>STEGO VAULT // JENIA</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#030806;color:#00ff41;font-family:monospace;padding:12px;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.w{width:100%;max-width:460px;background:#07130c;border:1px solid #00ff41;border-radius:8px;padding:14px;box-shadow:0 0 20px rgba(0,255,65,0.2)}
+header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #004d1a;padding-bottom:8px;margin-bottom:12px}
+h1{font-size:15px}.b{background:#00290e;border:1px solid #00ff41;padding:2px 6px;border-radius:4px;font-size:10px}
+.up{border:2px dashed #00ff41;background:#040d07;border-radius:8px;padding:15px;text-align:center;cursor:pointer;margin-bottom:10px;display:block}
+input[type=file]{display:none}
+#prev{max-width:100%;max-height:130px;border-radius:6px;margin:0 auto 10px;display:none;border:1px solid #00ff41}
+input[type=text],textarea{width:100%;background:#020704;border:1px solid #006622;color:#e2e8f0;padding:9px;border-radius:6px;font-family:monospace;font-size:13px;margin-bottom:8px;outline:none}
+textarea{height:75px;resize:none}
+.btns{display:flex;gap:8px;margin-bottom:10px}
+button{flex:1;padding:12px 4px;border:1px solid #00ff41;border-radius:6px;font-family:monospace;font-weight:bold;font-size:12px;cursor:pointer;background:#003311;color:#00ff41}
+button:active{background:#00ff41;color:#000}
+button.dec{border-color:#38bdf8;color:#38bdf8;background:#051e30}
+#out{background:#020704;border:1px solid #004d1a;padding:10px;border-radius:6px;font-size:12px;color:#ffd700;word-break:break-word;display:none}
+</style>
+</head>
+<body>
+<div class="w">
+  <header><h1>[ STEGO VAULT // JENIA ]</h1><span class="b">PIXEL CRYPT</span></header>
+  <label class="up">
+    <div style="font-size:13px;font-weight:bold;margin-bottom:3px">📂 ВЫБРАТЬ КАРТИНКУ ИЗ ГАЛЕРЕИ</div>
+    <div style="font-size:11px;color:#6ee7b7">Для шифрования или чтения секрета</div>
+    <input type="file" accept="image/*" onchange="loadImg(this.files[0])">
+  </label>
+  <img id="prev" alt="Preview">
+  <input type="text" id="pwd" placeholder="Секретный пароль...">
+  <textarea id="msg" placeholder="Тайное сообщение (для чтения оставь пустым)..."></textarea>
+  <div class="btns">
+    <button onclick="hideText()">СПРЯТАТЬ В ФОТО</button>
+    <button class="dec" onclick="readText()">ИЗВЛЕЧЬ ИЗ ФОТО</button>
+  </div>
+  <div id="out"></div>
+</div>
 <script>
 let imgObj=null;
-function showOut(txt,col){
-  const o=document.getElementById('out');
-  o.style.display='block';o.style.color=col||'#ffd700';o.textContent=txt;
-}
-function loadImg(file){
-  if(!file)return;
-  const r=new FileReader();
-  r.onload=e=>{
-    const im=new Image();
-    im.onload=()=>{imgObj=im;const p=document.getElementById('prev');p.src=im.src;p.style.display='block';showOut('Картинка загружена ('+im.width+'x'+im.height+'). Готово к работе.','#00ff41');};
-    im.src=e.target.result;
-  };
-  r.readAsDataURL(file);
-}
-function xorCrypt(str,key){
-  if(!key)return str;
-  let res='';
-  for(let i=0;i<str.length;i++)res+=String.fromCharCode(str.charCodeAt(i)^key.charCodeAt(i%key.length));
-  return res;
-}
+const out=(t,c)=>{const o=document.getElementById('out');o.style.display='block';o.style.color=c||'#ffd700';o.textContent=t;};
+function loadImg(f){if(!f)return;const r=new FileReader();r.onload=e=>{const im=new Image();im.onload=()=>{imgObj=im;const p=document.getElementById('prev');p.src=im.src;p.style.display='block';out('Фото загружено ('+im.width+'x'+im.height+')','#00ff41');};im.src=e.target.result;};r.readAsDataURL(f);}
+const xor=(s,k)=>{if(!k)return s;let r='';for(let i=0;i<s.length;i++)r+=String.fromCharCode(s.charCodeAt(i)^k.charCodeAt(i%k.length));return r;};
 function hideText(){
-  if(!imgObj){showOut('Сначала выбери картинку!','#f43f5e');return;}
-  const raw=document.getElementById('msg').value;
-  if(!raw){showOut('Впиши секретное сообщение!','#f43f5e');return;}
+  if(!imgObj)return out('Выбери картинку!','#f43f5e');
+  const raw=document.getElementById('msg').value;if(!raw)return out('Впиши текст!','#f43f5e');
   const key=document.getElementById('pwd').value||'jenia';
-  const enc='JVAULT:'+btoa(unescape(encodeURIComponent(xorCrypt(raw,key))))+'#END#';
-  const c=document.createElement('canvas');
-  c.width=imgObj.width;c.height=imgObj.height;
+  const enc='JV:'+btoa(unescape(encodeURIComponent(xor(raw,key))))+'#E#';
+  const c=document.createElement('canvas');c.width=imgObj.width;c.height=imgObj.height;
   const ctx=c.getContext('2d');ctx.drawImage(imgObj,0,0);
   const id=ctx.getImageData(0,0,c.width,c.height),d=id.data;
-  if(enc.length*8>d.length/4*3){showOut('Текст слишком длинный для этого фото!','#f43f5e');return;}
-  let bitIdx=0;
+  if(enc.length*8>d.length/4*3)return out('Фото слишком маленькое!','#f43f5e');
+  let bi=0;
   for(let i=0;i<enc.length;i++){
-    const code=enc.charCodeAt(i);
-    for(let b=7;b>=0;b--){
-      const bit=(code>>b)&1;
-      const px=Math.floor(bitIdx/3)*4+(bitIdx%3);
-      d.splice(px,1,(d.at(px)&254)|bit);
-      bitIdx++;
-    }
+    const cd=enc.charCodeAt(i);
+    for(let b=7;b>=0;b--){const bit=(cd>>b)&1,px=Math.floor(bi/3)*4+(bi%3);d[px]=(d[px]&254)|bit;bi++;}
   }
   ctx.putImageData(id,0,0);
-  const a=document.createElement('a');
-  a.href=c.toDataURL('image/png');
-  a.download='secret_photo_'+Date.now()+'.png';
-  a.click();
-  showOut('ГОТОВО! Секрет зашит в пиксели. Скачан файл secret_photo.png — отправляй его в чат КАК ФАЙЛ (без сжатия)!','#00ff41');
+  const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='secret_'+Date.now()+'.png';a.click();
+  out('ГОТОВО! Скачан файл secret.png. Кидай в чат КАК ФАЙЛ!','#00ff41');
 }
 function readText(){
-  if(!imgObj){showOut('Сначала выбери картинку с секретом!','#f43f5e');return;}
+  if(!imgObj)return out('Выбери картинку!','#f43f5e');
   const key=document.getElementById('pwd').value||'jenia';
-  const c=document.createElement('canvas');
-  c.width=imgObj.width;c.height=imgObj.height;
+  const c=document.createElement('canvas');c.width=imgObj.width;c.height=imgObj.height;
   const ctx=c.getContext('2d');ctx.drawImage(imgObj,0,0);
   const d=ctx.getImageData(0,0,c.width,c.height).data;
-  let chars='',cur=0,bits=0,maxPx=Math.min(d.length,120000);
-  for(let i=0;i<maxPx;i++){
+  let ch='',cur=0,bits=0,lim=Math.min(d.length,150000);
+  for(let i=0;i<lim;i++){
     if(i%4===3)continue;
-    cur=(cur<<1)|(d.at(i)&1);bits++;
-    if(bits===8){
-      chars+=String.fromCharCode(cur);
-      if(chars.endsWith('#END#'))break;
-      cur=0;bits=0;
-    }
+    cur=(cur<<1)|(d[i]&1);bits++;
+    if(bits===8){ch+=String.fromCharCode(cur);if(ch.endsWith('#E#'))break;cur=0;bits=0;}
   }
-  if(!chars.startsWith('JVAULT:')||!chars.endsWith('#END#')){
-    showOut('В этом фото нет скрытого послания (или оно сжато мессенджером).','#f43f5e');return;
-  }
-  try{
-    const b64=chars.slice(7,-5);
-    const dec=xorCrypt(decodeURIComponent(escape(atob(b64))),key);
-    showOut('РАСШИФРОВАНО: '+dec,'#ffd700');
-  }catch(e){
-    showOut('Неверный пароль или повреждённый файл!','#f43f5e');
-  }
+  if(!ch.startsWith('JV:')||!ch.endsWith('#E#'))return out('Секрет не найден (или фото сжато).','#f43f5e');
+  try{out('СЕКРЕТ: '+xor(decodeURIComponent(escape(atob(ch.slice(3,-3)))),key),'#ffd700');}
+  catch(e){out('Неверный пароль!','#f43f5e');}
 }
 </script>
 </body>
