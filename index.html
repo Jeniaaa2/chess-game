@@ -1,227 +1,81 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>MATRIX GRANDMASTER // JENIA</title>
-<script src="https://jsdelivr.net"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:#020503;color:#00ff41;font-family:'Courier New',monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;overflow-x:hidden;user-select:none}
-#mx{position:fixed;inset:0;z-index:0;opacity:0.35;pointer-events:none}
-.wrap{position:relative;z-index:1;width:100%;max-width:480px;display:flex;flex-direction:column;gap:6px}
-.top{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,18,5,0.92);border:1px solid #00ff41;border-radius:8px;box-shadow:0 0 15px rgba(0,255,65,0.2)}
-.ttl{font-size:14px;font-weight:bold;text-shadow:0 0 8px #00ff41}
-.st{font-size:12px;color:#ffd700;font-weight:bold}
-.eval{width:100%;height:7px;background:#1a1a1a;border:1px solid #00ff41;border-radius:4px;overflow:hidden;display:flex}
-.ew{height:100%;width:50%;background:linear-gradient(90deg,#e2e8f0,#38bdf8);transition:width 0.4s}
-.eb{height:100%;flex:1;background:#78350f}
-.bframe{width:100%;aspect-ratio:1/1;border:2px solid #00ff41;border-radius:8px;overflow:hidden;box-shadow:0 0 28px rgba(0,255,65,0.3);background:#030d05}
-.brd{display:grid;grid-template-columns:repeat(8,1fr);width:100%;height:100%}
-.sq{display:flex;align-items:center;justify-content:center;font-size:11vw;cursor:pointer;position:relative}
-@media(min-width:480px){.sq{font-size:52px}}
-.l{background:rgba(0,62,22,0.86)}.d{background:rgba(2,20,8,0.94)}
-.sel{background:rgba(0,255,65,0.45)!important;box-shadow:inset 0 0 12px #00ff41}
-.last{box-shadow:inset 0 0 14px rgba(255,215,0,0.85)}
-.chk{background:rgba(244,63,94,0.65)!important}
-.hint::after{content:"";width:28%;height:28%;background:#00ff41;border-radius:50%;box-shadow:0 0 10px #00ff41}
-.cap::after{content:"";width:76%;height:76%;border:3px solid #f43f5e;border-radius:50%;box-shadow:0 0 10px #f43f5e}
-.pw{color:#fff;text-shadow:0 0 12px #00ff41,0 2px 3px #000}
-.pb{color:#ffd700;text-shadow:0 0 12px #ff9900,0 2px 3px #000}
-.log{background:rgba(0,15,4,0.9);border:1px solid #005518;border-radius:6px;padding:6px 10px;font-size:11px;color:#86efac;white-space:nowrap;overflow-x:auto;min-height:26px}
-.btns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-button{padding:12px 4px;border:1px solid #00ff41;border-radius:6px;font-family:inherit;font-weight:bold;font-size:11px;cursor:pointer;background:#00290c;color:#00ff41}
-button:active{background:#00ff41;color:#000}
-button.alt{border-color:#38bdf8;color:#38bdf8;background:#041e30}
-button.wrn{border-color:#f59e0b;color:#f59e0b;background:#291a03}
-</style>
-</head>
-<body>
-<canvas id="mx"></canvas>
-<div class="wrap">
-  <div class="top"><div class="ttl">[ MATRIX CHESS // JENIA ]</div><div class="st" id="st">Загрузка...</div></div>
-  <div class="eval"><div class="ew" id="evW"></div><div class="eb"></div></div>
-  <div class="bframe"><div class="brd" id="brd"></div></div>
-  <div class="log" id="log">История: Нажми на белую фигуру для хода</div>
-  <div class="btns">
-    <button onclick="newGame('w')">БЕЛЫМИ</button>
-    <button onclick="newGame('b')">ЧЁРНЫМИ</button>
-    <button class="wrn" onclick="undoMv()">НАЗАД</button>
-    <button class="alt" id="mBtn" onclick="togMus()">ЗВУК: ВЫКЛ</button>
-  </div><script>
-const mc=document.getElementById('mx'),mctx=mc.getContext('2d');
-let drops=[];
-function resMx(){mc.width=innerWidth;mc.height=innerHeight;drops=Array.from({length:Math.floor(mc.width/15)},()=>Math.floor(Math.random()*40));}
-resMx();addEventListener('resize',resMx);
-setInterval(()=>{
-  mctx.fillStyle='rgba(2,5,3,0.14)';mctx.fillRect(0,0,mc.width,mc.height);
-  mctx.fillStyle='#00ff41';mctx.font='14px monospace';
-  for(let i=0;i<drops.length;i++){
-    mctx.fillText(String.fromCharCode(0x30A0+Math.floor(Math.random()*96)),i*15,drops.at(i)*15);
-    if(drops.at(i)*15>mc.height&&Math.random()>0.975)drops.splice(i,1,0);
-    else drops.splice(i,1,drops.at(i)+1);
+<script>
+let imgObj=null;
+function showOut(txt,col){
+  const o=document.getElementById('out');
+  o.style.display='block';o.style.color=col||'#ffd700';o.textContent=txt;
+}
+function loadImg(file){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const im=new Image();
+    im.onload=()=>{imgObj=im;const p=document.getElementById('prev');p.src=im.src;p.style.display='block';showOut('Картинка загружена ('+im.width+'x'+im.height+'). Готово к работе.','#00ff41');};
+    im.src=e.target.result;
+  };
+  r.readAsDataURL(file);
+}
+function xorCrypt(str,key){
+  if(!key)return str;
+  let res='';
+  for(let i=0;i<str.length;i++)res+=String.fromCharCode(str.charCodeAt(i)^key.charCodeAt(i%key.length));
+  return res;
+}
+function hideText(){
+  if(!imgObj){showOut('Сначала выбери картинку!','#f43f5e');return;}
+  const raw=document.getElementById('msg').value;
+  if(!raw){showOut('Впиши секретное сообщение!','#f43f5e');return;}
+  const key=document.getElementById('pwd').value||'jenia';
+  const enc='JVAULT:'+btoa(unescape(encodeURIComponent(xorCrypt(raw,key))))+'#END#';
+  const c=document.createElement('canvas');
+  c.width=imgObj.width;c.height=imgObj.height;
+  const ctx=c.getContext('2d');ctx.drawImage(imgObj,0,0);
+  const id=ctx.getImageData(0,0,c.width,c.height),d=id.data;
+  if(enc.length*8>d.length/4*3){showOut('Текст слишком длинный для этого фото!','#f43f5e');return;}
+  let bitIdx=0;
+  for(let i=0;i<enc.length;i++){
+    const code=enc.charCodeAt(i);
+    for(let b=7;b>=0;b--){
+      const bit=(code>>b)&1;
+      const px=Math.floor(bitIdx/3)*4+(bitIdx%3);
+      d.splice(px,1,(d.at(px)&254)|bit);
+      bitIdx++;
+    }
   }
-},50);
-
-let actx=null,musOn=false,musInt=null,nIdx=0;
-function tone(f,d,t,v){
-  if(!musOn)return;
+  ctx.putImageData(id,0,0);
+  const a=document.createElement('a');
+  a.href=c.toDataURL('image/png');
+  a.download='secret_photo_'+Date.now()+'.png';
+  a.click();
+  showOut('ГОТОВО! Секрет зашит в пиксели. Скачан файл secret_photo.png — отправляй его в чат КАК ФАЙЛ (без сжатия)!','#00ff41');
+}
+function readText(){
+  if(!imgObj){showOut('Сначала выбери картинку с секретом!','#f43f5e');return;}
+  const key=document.getElementById('pwd').value||'jenia';
+  const c=document.createElement('canvas');
+  c.width=imgObj.width;c.height=imgObj.height;
+  const ctx=c.getContext('2d');ctx.drawImage(imgObj,0,0);
+  const d=ctx.getImageData(0,0,c.width,c.height).data;
+  let chars='',cur=0,bits=0,maxPx=Math.min(d.length,120000);
+  for(let i=0;i<maxPx;i++){
+    if(i%4===3)continue;
+    cur=(cur<<1)|(d.at(i)&1);bits++;
+    if(bits===8){
+      chars+=String.fromCharCode(cur);
+      if(chars.endsWith('#END#'))break;
+      cur=0;bits=0;
+    }
+  }
+  if(!chars.startsWith('JVAULT:')||!chars.endsWith('#END#')){
+    showOut('В этом фото нет скрытого послания (или оно сжато мессенджером).','#f43f5e');return;
+  }
   try{
-    if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();
-    if(actx.state==='suspended')actx.resume();
-    const o=actx.createOscillator(),g=actx.createGain();
-    o.type=t||'sine';o.frequency.value=f;
-    g.gain.setValueAtTime(v||0.08,actx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+(d||0.22));
-    o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+(d||0.22));
-  }catch(e){}
-}
-function togMus(){
-  musOn=!musOn;
-  document.getElementById('mBtn').textContent=musOn?'ЗВУК: ВКЛ':'ЗВУК: ВЫКЛ';
-  if(musOn){
-    tone(440,0.2,'sine',0.08);
-    const pad=[110,130.8,146.8,164.8,196,164.8,146.8,130.8];
-    musInt=setInterval(()=>{tone(pad.at(nIdx%8),0.45,'triangle',0.035);nIdx++;},360);
-  }else clearInterval(musInt);
-}
-
-const UNI={P:'♙',R:'♖',N:'♘',B:'♗',Q:'♕',K:'♔',p:'♟',r:'♜',n:'♞',b:'♝',q:'♛',k:'♚'};
-const VAL={p:100,n:320,b:330,r:500,q:920,k:20000};
-let game=null,pCol='w',sel=null,lFrom=null,lTo=null;
-
-function evalPos(){
-  let total=0;const b=game.board();
-  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
-    const pc=b.at(r).at(c);if(!pc)continue;
-    let bonus=(3.5-Math.abs(3.5-c))*6+(3.5-Math.abs(3.5-r))*5;
-    if(pc.type==='p')bonus+=(pc.color==='w'?(6-r):(r-1))*14;
-    if(pc.type==='k')bonus=-(3.5-Math.abs(3.5-c))*12;
-    const v=VAL[pc.type]+bonus;
-    total+=pc.color==='w'?v:-v;
-  }
-  return total;
-}
-
-function search(depth,alpha,beta,isMax){
-  if(depth===0||game.game_over()){
-    if(game.in_checkmate())return isMax?-90000-depth:90000+depth;
-    if(game.in_draw())return 0;
-    return evalPos();
-  }
-  const mvs=game.moves({verbose:true});
-  mvs.sort((a,b)=>((b.captured?10:0)+(b.promotion?8:0))-((a.captured?10:0)+(a.promotion?8:0)));
-  if(isMax){
-    let best=-999999;
-    for(const m of mvs){
-      game.move(m);best=Math.max(best,search(depth-1,alpha,beta,false));game.undo();
-      alpha=Math.max(alpha,best);if(beta<=alpha)break;
-    }
-    return best;
-  }else{
-    let best=999999;
-    for(const m of mvs){
-      game.move(m);best=Math.min(best,search(depth-1,alpha,beta,true));game.undo();
-      beta=Math.min(beta,best);if(beta<=alpha)break;
-    }
-    return best;
+    const b64=chars.slice(7,-5);
+    const dec=xorCrypt(decodeURIComponent(escape(atob(b64))),key);
+    showOut('РАСШИФРОВАНО: '+dec,'#ffd700');
+  }catch(e){
+    showOut('Неверный пароль или повреждённый файл!','#f43f5e');
   }
 }
-
-function aiTurn(){
-  if(game.game_over())return;
-  const mvs=game.moves({verbose:true});
-  mvs.sort(()=>Math.random()-0.5);
-  let bestM=mvs.at(0),bestV=pCol==='w'?999999:-999999;
-  for(const m of mvs){
-    game.move(m);
-    const v=search(2,-999999,999999,pCol==='w');
-    game.undo();
-    if((pCol==='w'&&v<bestV)||(pCol==='b'&&v>bestV)){bestV=v;bestM=m;}
-  }
-  if(bestM){
-    const res=game.move(bestM);
-    lFrom=res.from;lTo=res.to;
-    tone(res.captured?220:330,0.22,res.captured?'sawtooth':'sine',0.09);
-    draw();
-  }
-}
-
-function tapSq(sq){
-  if(!game||game.game_over()||game.turn()!==pCol)return;
-  if(sel){
-    const mv=game.move({from:sel,to:sq,promotion:'q'});
-    if(mv){
-      sel=null;lFrom=mv.from;lTo=mv.to;
-      tone(mv.captured?240:520,0.22,mv.captured?'sawtooth':'sine',0.09);
-      draw();
-      if(!game.game_over()){
-        document.getElementById('st').textContent='ИИ думает...';
-        setTimeout(aiTurn,160);
-      }
-      return;
-    }
-  }
-  const pc=game.get(sq);
-  sel=(pc&&pc.color===pCol)?sq:null;
-  draw();
-}
-
-function undoMv(){
-  if(!game||game.history().length<2)return;
-  game.undo();game.undo();sel=null;lFrom=null;lTo=null;draw();
-}
-
-function draw(){
-  const el=document.getElementById('brd');el.innerHTML='';
-  const hints=sel?game.moves({square:sel,verbose:true}):[];
-  const inChk=game.in_check();
-  for(let i=0;i<8;i++){
-    const r=pCol==='w'?i:7-i;
-    for(let j=0;j<8;j++){
-      const c=pCol==='w'?j:7-j;
-      const sq=String.fromCharCode(97+c)+(8-r);
-      const d=document.createElement('div');
-      d.className='sq '+((r+c)%2===0?'l':'d');
-      if(sq===sel)d.classList.add('sel');
-      if(sq===lFrom||sq===lTo)d.classList.add('last');
-      const h=hints.find(m=>m.to===sq);
-      if(h)d.classList.add(h.captured?'cap':'hint');
-      const pc=game.get(sq);
-      if(pc){
-        if(inChk&&pc.type==='k'&&pc.color===game.turn())d.classList.add('chk');
-        const key=pc.color==='w'?pc.type.toUpperCase():pc.type;
-        d.innerHTML=`<span class="${pc.color==='w'?'pw':'pb'}">${UNI[key]}</span>`;
-      }
-      d.onclick=()=>tapSq(sq);
-      el.appendChild(d);
-    }
-  }
-  const ev=evalPos();
-  document.getElementById('evW').style.width=Math.max(5,Math.min(95,50+ev/25))+'%';
-  const hist=game.history();
-  document.getElementById('log').textContent=hist.length?'Ходы: '+hist.slice(-10).join(' '):'История: Сделай первый ход';
-  const st=document.getElementById('st');
-  if(game.in_checkmate())st.textContent=game.turn()===pCol?'МАТ! Ты проиграл':'МАТ! Твоя победа!';
-  else if(game.in_draw())st.textContent='НИЧЬЯ / ПАТ!';
-  else if(inChk)st.textContent='ШАХ! Твой ход';
-  else st.textContent=game.turn()===pCol?'Твой ход':'Ход ИИ...';
-}
-
-function newGame(col){
-  if(!game)return;
-  pCol=col;game.reset();sel=null;lFrom=null;lTo=null;draw();
-  if(pCol==='b')setTimeout(aiTurn,250);
-}
-
-window.addEventListener('load',()=>{
-  if(typeof Chess==='undefined'){
-    document.getElementById('st').textContent='Отключи щит Brave для сайта!';
-    return;
-  }
-  game=new Chess();
-  draw();
-});
 </script>
 </body>
 </html>
